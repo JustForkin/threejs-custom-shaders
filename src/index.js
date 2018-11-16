@@ -7,8 +7,9 @@ import PostEffects from './app/PostEffects.js';
 import Hallways from './app/Hallways.js';
 import {TweenMax, TimelineLite} from "gsap/TweenMax";
 import OrbitControls from 'orbit-controls-es6';
+import PromisedLoad from './app/PromisedLoad';
 
-let renderer, scene, controls, camera, material, pointLight, geometry, sphere, light = null;
+let renderer, scene, Josh, controls, camera, material, pointLight, geometry, sphere, light = null;
 const container = document.getElementById('container');
 const clock = new THREE.Clock();
 
@@ -33,7 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
       controls.enabled = true;
       controls.update();
 
-      addGeometry();
+      PromisedLoad.GetGLTF('../static/josh.glb', JoshModelLoaded);
+
+      addSphere();
 
       addLights();
       
@@ -55,14 +58,18 @@ document.addEventListener("DOMContentLoaded", () => {
     var delta = clock.getDelta();
     var elapsedTime = Date.now() - start;
 
-    material.alphaMap.offset.y = elapsedTime * 0.0002;
+    // animate the sphere material
+    material.alphaMap.offset.y = elapsedTime * 0.00007;
+    // rotate the sphere
+    sphere.rotation.y += 0.01;
 
   }
 
-  function addGeometry() {
+  function addSphere() {
     let alphaMap = new THREE.TextureLoader().load('../static/texture.png');
 
-    geometry = new THREE.SphereGeometry( 50, 50, 50 );
+    geometry = new THREE.SphereBufferGeometry( 50, 32, 32, 0, 6.3, 5, 1.8 );
+    // geometry.drawRange.count = 2000;
     material = new THREE.MeshStandardMaterial( { 
       color: "#000",
       transparent: true,
@@ -76,6 +83,11 @@ document.addEventListener("DOMContentLoaded", () => {
     sphere = new THREE.Mesh( geometry, material );
     scene.add( sphere );
 
+    //position at third eye
+    sphere.rotation.x += 90;
+    sphere.position.z -= 40;
+    sphere.position.y += 40;
+
   }
 
   function addLights() {
@@ -86,4 +98,28 @@ document.addEventListener("DOMContentLoaded", () => {
     pointLight.position.z = 0;
     scene.add(pointLight);
   }
+
+  function JoshModelLoaded(importedObject) {
+    let alphaMap = new THREE.TextureLoader().load('../static/texture.png');
+    console.log('importedObject:  ', importedObject);
+    Josh = importedObject.scene.children[0];
+    console.log('Josh:  ', Josh);
+    scene.add(Josh);
+    Josh.position.set(0, 0, 0);
+    Josh.position.x -= 2;
+    Josh.rotation.y += 220;
+    Josh.scale.set(50, 50, 50);
+
+    Josh.children[0].material = new THREE.MeshStandardMaterial( { 
+      color: "#44f",
+      transparent: true,
+      side: THREE.DoubleSide, 
+      alphaTest: 0.5, 
+    } );
+    Josh.children[0].alphaMap = alphaMap;
+    Josh.children[0].alphaMap.magFilter = THREE.NearestFilter;
+    Josh.children[0].alphaMap.wrapT = THREE.RepeatWrapping;
+    Josh.children[0].alphaMap.repeat.y = 1;
+  }
+
 });
