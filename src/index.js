@@ -10,6 +10,7 @@ import OrbitControls from 'orbit-controls-es6';
 import PromisedLoad from './app/PromisedLoad';
 
 let renderer, scene, Josh, controls, camera, material, pointLight, geometry, sphere, light = null;
+let nMax;
 const container = document.getElementById('container');
 const clock = new THREE.Clock();
 
@@ -59,9 +60,15 @@ document.addEventListener("DOMContentLoaded", () => {
     var elapsedTime = Date.now() - start;
 
     // animate the sphere material
-    material.alphaMap.offset.y = elapsedTime * 0.00007;
+    material.alphaMap.offset.y = elapsedTime * -0.00007;
     // rotate the sphere
     sphere.rotation.y += 0.01;
+
+    if(nMax != undefined && Josh) {
+      Josh.children[0].geometry.setDrawRange(0 * Math.abs(Math.cos(elapsedTime * 0.1)), nMax * Math.abs(Math.sin(elapsedTime * 0.1)));
+      
+    }
+    
 
   }
 
@@ -120,6 +127,29 @@ document.addEventListener("DOMContentLoaded", () => {
     Josh.children[0].alphaMap.magFilter = THREE.NearestFilter;
     Josh.children[0].alphaMap.wrapT = THREE.RepeatWrapping;
     Josh.children[0].alphaMap.repeat.y = 1;
+
+    nMax = Josh.children[0].geometry.attributes.position.count;
+
+    // clone josh
+    let foo = Josh.clone();
+    foo.children[0].material = new THREE.MeshStandardMaterial( { 
+      color: "#44f",
+      transparent: true,
+      side: THREE.DoubleSide, 
+      alphaTest: 0.5, 
+    } );
+
+    foo.position.set(0, 0, -100);
+    foo.position.x -= 2;
+    foo.rotation.y += 220;
+    foo.scale.set(250, 250, 250);
+    foo.children[0].alphaMap = alphaMap;
+    foo.children[0].alphaMap.magFilter = THREE.NearestFilter;
+    foo.children[0].alphaMap.wrapT = THREE.RepeatWrapping;
+    foo.children[0].alphaMap.repeat.y = 1;
+    foo.children[0].geometry.setDrawRange(190, 200);
+    scene.add(foo);
+    
   }
 
 });
