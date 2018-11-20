@@ -17,6 +17,8 @@ var mesh;
 var controls;
 var head, headMesh;
 var vertArr;
+var headAttrPositionArr = new Float32Array();
+var headIndexArr = new Float32Array();
 
 
 init();
@@ -146,6 +148,13 @@ function initHead(gltf) {
   // console.log('gltf:  ', gltf);
   head = gltf.scene.children[0];
   headMesh = head.children[0];
+  headMesh.material.transparent = false;
+  headMesh.material.opacity = 0.3;
+
+  
+
+  headAttrPositionArr = headMesh.geometry.attributes.position.array;
+  headIndexArr = headMesh.geometry.index.array;
 
   // transform
   head.scale.set(100, 100, 100);
@@ -154,23 +163,25 @@ function initHead(gltf) {
 
   vertArr = [];
 
-  for(let i = 0; i < headMesh.geometry.attributes.position.count; i += 3) {
+  for(let i = 0; i < headIndexArr.length; i += 3) {
     let tempVec = new THREE.Vector3(
-      headMesh.geometry.attributes.position.array[i],
-      headMesh.geometry.attributes.position.array[i + 1],
-      headMesh.geometry.attributes.position.array[i + 2]
+      headAttrPositionArr[i],
+      headAttrPositionArr[i + 1],
+      headAttrPositionArr[i + 2]
     );
     vertArr.push(tempVec);
   }
 
-  for(let i = 0; i < vertArr.length; i+=10) {
+  console.log(vertArr);
+
+  for(let i = 0; i < vertArr.length; i+=1) {
     let geo = new THREE.BoxGeometry(2, 2, 2);
     let mat = new THREE.MeshBasicMaterial({ color: 0xffff00});
-    let sphere = new THREE.Mesh(geo, mat);
+    let box = new THREE.Mesh(geo, mat);
     let scaledVec = vertArr[i].multiplyScalar(300.0);
-    sphere.position.set(scaledVec.x, scaledVec.y, scaledVec.z);
-    // console.log(vertArr[i]);
-    scene.add(sphere);
+    box.position.set(scaledVec.x, scaledVec.y, scaledVec.z);
+    console.log(vertArr[i]);
+    scene.add(box);
   }
   
 
