@@ -15,7 +15,9 @@ var container;
 var camera, scene, renderer;
 var mesh;
 var controls;
-var head;
+var head, headMesh;
+var vertArr;
+
 
 init();
 animate();
@@ -124,7 +126,7 @@ function init() {
     side: THREE.DoubleSide, vertexColors: THREE.VertexColors
   } );
   mesh = new THREE.Mesh( geometry, material );
-  scene.add( mesh );
+  // scene.add( mesh );
   //
   renderer = new THREE.WebGLRenderer();
   renderer.setPixelRatio( window.devicePixelRatio );
@@ -143,11 +145,39 @@ function init() {
 function initHead(gltf) {
   // console.log('gltf:  ', gltf);
   head = gltf.scene.children[0];
+  headMesh = head.children[0];
+
+  // transform
   head.scale.set(100, 100, 100);
-  console.log('head:  ', head);
   head.rotation.set(0, 160, 0);
   head.position.y -= 20;
+
+  vertArr = [];
+
+  for(let i = 0; i < headMesh.geometry.attributes.position.count; i += 3) {
+    let tempVec = new THREE.Vector3(
+      headMesh.geometry.attributes.position.array[i],
+      headMesh.geometry.attributes.position.array[i + 1],
+      headMesh.geometry.attributes.position.array[i + 2]
+    );
+    vertArr.push(tempVec);
+  }
+
+  for(let i = 0; i < vertArr.length; i+=10) {
+    let geo = new THREE.BoxGeometry(2, 2, 2);
+    let mat = new THREE.MeshBasicMaterial({ color: 0xffff00});
+    let sphere = new THREE.Mesh(geo, mat);
+    let scaledVec = vertArr[i].multiplyScalar(300.0);
+    sphere.position.set(scaledVec.x, scaledVec.y, scaledVec.z);
+    // console.log(vertArr[i]);
+    scene.add(sphere);
+  }
+  
+
   scene.add(head);
+  console.log('head:  ', head);
+  // console.log('vertArr:  ', vertArr);
+  console.log('scene:  ', scene);
 }
 
 function onWindowResize() {
