@@ -19,6 +19,7 @@ var head, headMesh;
 var vertArr;
 var headAttrPositionArr = new Float32Array();
 var headIndexArr = new Float32Array();
+var cubeGroup;
 
 
 init();
@@ -142,7 +143,10 @@ function init() {
 
   
   PromisedLoad.GetGLTF('../static/josh.glb', initHead);
+  // PromisedLoad.GetGLTF('../static/Douglas/anotherone.gltf', initDoug);
 }
+
+
 
 function initHead(gltf) {
   // console.log('gltf:  ', gltf);
@@ -172,18 +176,33 @@ function initHead(gltf) {
     vertArr.push(tempVec);
   }
 
-  console.log(vertArr);
+  // console.log(vertArr);
+  cubeGroup = new THREE.Group();
+  
 
   for(let i = 0; i < vertArr.length; i+=1) {
-    let geo = new THREE.BoxGeometry(2, 2, 2);
+    let geo = new THREE.BufferGeometry();
+    let vertices = new Float32Array( [
+      -1.0, -1.0,  1.0,
+       1.0, -1.0,  1.0,
+       1.0,  1.0,  1.0,
+    
+       1.0,  1.0,  1.0,
+      -1.0,  1.0,  1.0,
+      -1.0, -1.0,  1.0
+    ] );
+    geo.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
     let mat = new THREE.MeshBasicMaterial({ color: 0xffff00});
+    
     let box = new THREE.Mesh(geo, mat);
     let scaledVec = vertArr[i].multiplyScalar(300.0);
     box.position.set(scaledVec.x, scaledVec.y, scaledVec.z);
+    box.rotation.y += Math.random() * 360;
     console.log(vertArr[i]);
-    scene.add(box);
+    cubeGroup.add(box);
   }
   
+  scene.add(cubeGroup);
 
   scene.add(head);
   console.log('head:  ', head);
@@ -205,7 +224,9 @@ function animate() {
 }
 function render() {
   var time = Date.now() * 0.001;
-  mesh.rotation.x = time * 0.025;
-  mesh.rotation.y = time * 0.05;
+  // mesh.rotation.x = time * 0.025;
+  // mesh.rotation.y = time * 0.05;
+  // cubeGroup.rotation.y = time * 0.25;
+  // cubeGroup.rotation.x = time * 0.5;
   renderer.render( scene, camera );
 }
