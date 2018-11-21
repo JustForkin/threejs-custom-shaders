@@ -9,224 +9,101 @@ import {TweenMax, TimelineLite} from "gsap/TweenMax";
 import OrbitControls from 'orbit-controls-es6';
 import PromisedLoad from './app/PromisedLoad';
 
+document.addEventListener("DOMContentLoaded", () => {
+  let renderer, camera, scene = null;
+  const container = document.getElementById('container');
+  const clock = new THREE.Clock();
+  const modelUrl = '/static/PreviousTests/Test2.gltf';
+  let mixer = null;
+  let actions = [];
+  let r = 10;
+  let pointLight;
+  let doug, dougMesh, dougPoint, dougPointMat;
+  let controls;
 
+  initialize();
 
-var container;
-var camera, scene, renderer;
-var mesh;
-var controls;
-var head, headMesh;
-var vertArr;
-var headAttrPositionArr = new Float32Array();
-var headIndexArr = new Float32Array();
-var cubeGroup;
+  async function initialize() {
+    renderer = new THREE.WebGLRenderer({
+      antialias: true,	// to get smoother output
+    });
+    renderer.setClearColor( 0x3b3b3b );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    container.appendChild(renderer.domElement);
 
+    // create a camera in the scene
+    camera	= new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 10000 );
 
-init();
-animate();
-
-function init() {
-  container = document.getElementById( 'container' );
-  //
-  camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, 1, 3500 );
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color( 0x050505 );
-  scene.fog = new THREE.Fog( 0x050505, 2000, 3500 );
-  //
-  scene.add( new THREE.AmbientLight( 0x444444 ) );
-  var light1 = new THREE.DirectionalLight( 0xffffff, 0.5 );
-  light1.position.set( 1, 1, 1 );
-  scene.add( light1 );
-  var light2 = new THREE.DirectionalLight( 0xffffff, 1.5 );
-  light2.position.set( 0, - 1, 0 );
-  scene.add( light2 );
-  // var pointLight1 = new THREE.PointLight(0xffffff);
-  // pointLight1.position.set(-2, 1, -1);
-  // scene.add(pointLight1);
-  //
-  controls = new OrbitControls(camera);
-  controls.enabled = true;
-  camera.position.z = 2750;
-  controls.update();
-  //
-  var triangles = 160000;  // default: 160000
-  var geometry = new THREE.BufferGeometry();
-  var positions = [];
-  var normals = [];
-  var colors = [];
-  var color = new THREE.Color();
-  var n = 800, n2 = n / 2;	// triangles spread in the cube
-  var d = 2, d2 = d / 2;	// individual triangle size
-  var pA = new THREE.Vector3();
-  var pB = new THREE.Vector3();
-  var pC = new THREE.Vector3();
-  var cb = new THREE.Vector3();
-  var ab = new THREE.Vector3();
-
-  for ( var i = 0; i < triangles; i ++ ) {
-    // positions
-    var x = Math.random() * n - n2;
-    var y = Math.random() * n - n2;
-    var z = Math.random() * n - n2;
-    var ax = x + Math.random() * d - d2;
-    var ay = y + Math.random() * d - d2;
-    var az = z + Math.random() * d - d2;
-    var bx = x + Math.random() * d - d2;
-    var by = y + Math.random() * d - d2;
-    var bz = z + Math.random() * d - d2;
-    var cx = x + Math.random() * d - d2;
-    var cy = y + Math.random() * d - d2;
-    var cz = z + Math.random() * d - d2;
-    positions.push( ax, ay, az );
-    positions.push( bx, by, bz );
-    positions.push( cx, cy, cz );
-    // flat face normals
-    pA.set( ax, ay, az );
-    pB.set( bx, by, bz );
-    pC.set( cx, cy, cz );
-    cb.subVectors( pC, pB );
-    ab.subVectors( pA, pB );
-    cb.cross( ab );
-    cb.normalize();
-    var nx = cb.x;
-    var ny = cb.y;
-    var nz = cb.z;
-    normals.push( nx, ny, nz );
-    normals.push( nx, ny, nz );
-    normals.push( nx, ny, nz );
-    // colors
-    var vx = ( x / n ) + 0.5;
-    var vy = ( y / n ) + 0.5;
-    var vz = ( z / n ) + 0.5;
-    color.setRGB( vx, vy, vz );
-    colors.push( color.r, color.g, color.b );
-    colors.push( color.r, color.g, color.b );
-    colors.push( color.r, color.g, color.b );
-  }
-
-  function disposeArray() {
-    this.array = null;
-  }
-
-  geometry.addAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ).onUpload( disposeArray ) );
-  geometry.addAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ).onUpload( disposeArray ) );
-  geometry.addAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ).onUpload( disposeArray ) );
-  geometry.computeBoundingSphere();
-
-  // console.log('geometry.boundingSphere:  ', geometry.boundingSphere);
-  // var sphereGeo = new THREE.SphereGeometry(688, 100, 100);
-  // var sphereMat = new THREE.MeshBasicMaterial({
-  //   color: 0xffffff,
-  //   transparent: true,
-  //   wireframe: true,
-  //   opacity: 0.1,
-  // });
-  // var sphere = new THREE.Mesh(sphereGeo, sphereMat);
-  // scene.add(sphere);
-
-  var material = new THREE.MeshPhongMaterial( {
-    color: 0xaaaaaa, specular: 0xffffff, shininess: 250,
-    side: THREE.DoubleSide, vertexColors: THREE.VertexColors
-  } );
-  mesh = new THREE.Mesh( geometry, material );
-  // scene.add( mesh );
-  //
-  renderer = new THREE.WebGLRenderer();
-  renderer.setPixelRatio( window.devicePixelRatio );
-  renderer.setSize( window.innerWidth, window.innerHeight );
-  renderer.gammaInput = true;
-  renderer.gammaOutput = true;
-  container.appendChild( renderer.domElement );
-
-  //
-  window.addEventListener( 'resize', onWindowResize, false );
-
-  
-  PromisedLoad.GetGLTF('../static/josh.glb', initHead);
-  // PromisedLoad.GetGLTF('../static/Douglas/anotherone.gltf', initDoug);
-}
-
-
-
-function initHead(gltf) {
-  // console.log('gltf:  ', gltf);
-  head = gltf.scene.children[0];
-  headMesh = head.children[0];
-  headMesh.material.transparent = false;
-  headMesh.material.opacity = 0.3;
-
-  
-
-  headAttrPositionArr = headMesh.geometry.attributes.position.array;
-  headIndexArr = headMesh.geometry.index.array;
-
-  // transform
-  head.scale.set(100, 100, 100);
-  head.rotation.set(0, 160, 0);
-  head.position.y -= 20;
-
-  vertArr = [];
-
-  for(let i = 0; i < headIndexArr.length; i += 3) {
-    let tempVec = new THREE.Vector3(
-      headAttrPositionArr[i],
-      headAttrPositionArr[i + 1],
-      headAttrPositionArr[i + 2]
-    );
-    vertArr.push(tempVec);
-  }
-
-  // console.log(vertArr);
-  cubeGroup = new THREE.Group();
-  
-
-  for(let i = 0; i < vertArr.length; i+=1) {
-    let geo = new THREE.BufferGeometry();
-    let vertices = new Float32Array( [
-      -1.0, -1.0,  1.0,
-       1.0, -1.0,  1.0,
-       1.0,  1.0,  1.0,
+    // load in that main object
+    let object = await PromisedLoad.GetGLTF(modelUrl);
     
-       1.0,  1.0,  1.0,
-      -1.0,  1.0,  1.0,
-      -1.0, -1.0,  1.0
-    ] );
-    geo.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    let mat = new THREE.MeshBasicMaterial({ color: 0xffff00});
-    
-    let box = new THREE.Mesh(geo, mat);
-    let scaledVec = vertArr[i].multiplyScalar(300.0);
-    box.position.set(scaledVec.x, scaledVec.y, scaledVec.z);
-    box.rotation.y += Math.random() * 360;
-    console.log(vertArr[i]);
-    cubeGroup.add(box);
+    // now to set up our scene
+    scene = object.scene;
+    doug = scene.children[2];
+    dougMesh = doug.children[0];
+    let pointMat = new THREE.PointsMaterial({ color: 0x888888 });
+    dougPoint = new THREE.Points(dougMesh.geometry, pointMat);
+    dougPoint.scale.set(0.14, 0.14, 0.14);
+    dougPoint.position.set(0, 2, 278);
+    scene.add(dougPoint);
+
+    controls = new OrbitControls(camera);
+    scene.add(camera);
+    camera.position.set(scene.position.x + 10, scene.position.y + 10, scene.position.z + 30);
+    controls.update();
+
+    // and then just look at it!
+    camera.lookAt(scene.position);
+    controls.update();
+
+    // The mixer controls your ActionClips, and lets you do animation timeline stuff
+    mixer = new THREE.AnimationMixer(object.scene);
+
+    // ActionClips are what let you define settings for animations, and play/stop them
+    actions.push(mixer.clipAction(object.animations[0]));
+    actions[0].play();
+
+    // we can detect when an animation has looped. There's also a 'finished' event.
+    mixer.addEventListener( 'loop', function( e ) {
+      console.log("Animation has looped");
+    });
+
+    // add some lightz
+    // var ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
+    // scene.add( ambientLight );
+
+    pointLight = new THREE.PointLight( 0xf04040, THREE.Vector3(0, 0, 0) );
+    scene.add( pointLight );
+
+    // now we can kick off the animate/render loop
+    animate();
   }
-  
-  scene.add(cubeGroup);
 
-  scene.add(head);
-  console.log('head:  ', head);
-  // console.log('vertArr:  ', vertArr);
-  console.log('scene:  ', scene);
-}
+  function animate() {
+    requestAnimationFrame( animate );
+    render()
+  }
 
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize( window.innerWidth, window.innerHeight );
-}
-//
-function animate() {
-  requestAnimationFrame( animate );
-  render();
-  controls.update();
+  function render() {
+    var delta = clock.getDelta();
+    let angle = ((delta * 1000) / 10) * Math.PI / 2 - 1.5;
 
-}
-function render() {
-  var time = Date.now() * 0.001;
-  // mesh.rotation.x = time * 0.025;
-  // mesh.rotation.y = time * 0.05;
-  // cubeGroup.rotation.y = time * 0.25;
-  // cubeGroup.rotation.x = time * 0.5;
-  renderer.render( scene, camera );
-}
+    if (mixer != null) {
+      // the mixer needs to know the delta time to update the animations
+      mixer.update(delta);
+    };
+
+    renderer.render( scene, camera );
+
+    // flickery light effect
+    pointLight.position.set(r * Math.cos(angle), r * Math.sin(angle), 0);
+
+    // slow doug rotation
+    // doug.rotation.x += 0.0025;
+    // doug.rotation.y += 0.0034;
+
+    controls.update();
+  }
+
+
+});
