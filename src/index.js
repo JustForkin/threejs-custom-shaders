@@ -9,6 +9,10 @@ import {TweenMax, TimelineLite} from "gsap/TweenMax";
 import OrbitControls from 'orbit-controls-es6';
 import PromisedLoad from './app/PromisedLoad';
 
+let mouse = new THREE.Vector2();
+
+window.addEventListener('mousemove', onDocumentMouseMove, false);
+
 document.addEventListener("DOMContentLoaded", () => {
   let renderer, camera, scene = null;
   const container = document.getElementById('container');
@@ -18,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let actions = [];
   let r = 10;
   let pointLight;
-  let doug, dougMesh, dougPoint, dougPointMat;
+  let doug, dougMesh, dougPoints, dougPointsMat;
   let controls;
 
   initialize();
@@ -41,11 +45,26 @@ document.addEventListener("DOMContentLoaded", () => {
     scene = object.scene;
     doug = scene.children[2];
     dougMesh = doug.children[0];
-    let pointMat = new THREE.PointsMaterial({ color: 0x888888 });
-    dougPoint = new THREE.Points(dougMesh.geometry, pointMat);
-    dougPoint.scale.set(0.14, 0.14, 0.14);
-    dougPoint.position.set(0, 2, 278);
-    scene.add(dougPoint);
+    dougMesh.material.transparent = true;
+    dougPoints = [];
+
+    for(let i = 0; i < 5; i++) {
+      let pointMat = new THREE.PointsMaterial({ color: 0x888888 });
+      let dp = new THREE.Points(dougMesh.geometry, pointMat);
+      dp.position.set(0, 2, 278);
+      dp.scale.set(0.14 + (i * 0.002), 0.14 + (i * 0.002), 0.14 + (i * 0.002));
+      dp.positionScalar = Math.random() * 2 - 1;
+      console.log(pointMat);
+
+      // offset the position just a touch
+      // dp.position.x += Math.random() * 10.0;
+      // dp.position.y += Math.random() * 10.0;
+      // dp.position.z += Math.random() * 10.0;
+
+      dougPoints.push(dp);
+      scene.add(dp);
+      
+    }
 
     controls = new OrbitControls(camera);
     scene.add(camera);
@@ -75,13 +94,39 @@ document.addEventListener("DOMContentLoaded", () => {
     pointLight = new THREE.PointLight( 0xf04040, THREE.Vector3(0, 0, 0) );
     scene.add( pointLight );
 
-    // now we can kick off the animate/render loop
     animate();
+  }
+
+  function updateDougPoints() {
+    for(let i = 0; i < dougPoints.length; i++) {
+      let dp = dougPoints[i];
+
+      dp.position.x += mouse.x * dp.positionScalar;
+      // dp.position.y += mouse.y * dp.positionScalar;
+    }
+  }
+
+  function normalize(x, fromMin, fromMax) {
+    let totalRange;
+
+    x = Math.abs(x);
+    totalRange = Math.abs(fromMin) + Math.abs(fromMax);
+    // now we can map out the range from 0 to the totalRange and get a normalized (0 - 1) value
+    return x / totalRange;
+  }
+
+  function updateDougAlpha() {
+    let dougPosNormalized = normalize(dougPoints[0].position.x, -30, 30);
+    // console.log('dougPosNormalized:  ', dougPosNormalized);
+    // console.log('dougPoints[0].position.x:  ', dougPoints[0].position.x);
+    dougMesh.material.opacity = 1 - Math.min(dougPosNormalized, 1);
   }
 
   function animate() {
     requestAnimationFrame( animate );
-    render()
+    updateDougPoints();
+    updateDougAlpha();
+    render();
   }
 
   function render() {
@@ -102,8 +147,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // doug.rotation.x += 0.0025;
     // doug.rotation.y += 0.0034;
 
+    
+
     controls.update();
   }
 
 
 });
+
+function onDocumentMouseMove(event) {
+  event.preventDefault();
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  // console.log('mouse:  ', mouse);
+
+}
