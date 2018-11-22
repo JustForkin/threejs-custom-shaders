@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let dougPosNormalized = normalize(dougPoints[0].position.x, -30, 30);
     // console.log('dougPosNormalized:  ', dougPosNormalized);
     // console.log('dougPoints[0].position.x:  ', dougPoints[0].position.x);
-    dougMesh.material.opacity = 1 - Math.min(dougPosNormalized, 1);
+    dougMesh.material.opacity = 1 - Math.min(dougPosNormalized, 1); 
   }
 
   function animate() {
