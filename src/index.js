@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
           type: 'f',
           value: 1
         },
-        dougPos: {
+        dougX: {
           type: 'f',
           value: 0
         }
@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dp.position.x += mouse.x * dp.positionScalar;
 
       // update shader uniform -
-      dp.material.uniforms.dougPos.value = dp.position.x;
+      dp.material.uniforms.dougX.value = dp.position.x;
     }
 
 

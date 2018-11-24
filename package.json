@@ -1,5 +1,5 @@
 {
-    "name": "l2d-minisite",
+    "name": "foo",
     "version": "2.0.0",
     "description": "",
     "main": "index.js",
@@ -14,7 +14,7 @@
         "url": ""
     },
     "keywords": [],
-    "author": "L2D",
+    "author": "foo",
     "license": "ISC",
     "bugs": {
         "url": ""
