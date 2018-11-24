@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let pointLight;
   let doug, dougMesh, dougPoints, dougPointsMat;
   let controls;
-  let startTime, timeDelta;
+  let startTime, time;
 
   initialize();
 
@@ -37,92 +37,63 @@ document.addEventListener("DOMContentLoaded", () => {
     renderer.setClearColor( 0x000000 );
     renderer.setSize( window.innerWidth, window.innerHeight );
     container.appendChild(renderer.domElement);
+    camera	= new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 1000 );
 
-    // create a camera in the scene
-    camera	= new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 10000 );
-
-    // load in that main object
+    // load in that main object - setup scene
     let object = await PromisedLoad.GetGLTF(modelUrl);
-    
-    // now to set up our scene
     scene = object.scene;
-    doug = scene.children[2];
-    dougMesh = doug.children[0];
-    dougMesh.material.transparent = true;
-    // dougMesh.material.flatShading = true;
-    dougPoints = [];
 
-    for(let i = 0; i < 5; i++) {
-      console.log(THREE.ShaderLib);
-      const pointsMaterialShader = THREE.ShaderLib.points;
-      const uniforms = {
-        timeDelta: {
-          type: 'f',
-          value: 0
-        },
-        size: {
-          type: 'f',
-          value: 2
-        },
-        scale: {
-          type: 'f',
-          value: 1
-        },
-        dougX: {
-          type: 'f',
-          value: 0
-        }
-      };
-      const customUniforms = THREE.UniformsUtils.merge([pointsMaterialShader, uniforms]);
-      const shaderMaterialParams = {
-        uniforms: customUniforms,
-        vertexShader: customVertexShader,
-        fragmentShader: customFragmentShader//pointsMaterialShader.fragmentShader,
-      };
-      const pointMat = new THREE.ShaderMaterial(shaderMaterialParams);
-      const dp = new THREE.Points(dougMesh.geometry, pointMat);
-      dp.position.set(0, 2, 278);
-      dp.scale.set(0.14 + (i * 0.002), 0.14 + (i * 0.002), 0.14 + (i * 0.002));
-      dp.positionScalar = Math.random() * 2 - 1;
-      console.log('pointMat:  ', pointMat);
 
-      dougPoints.push(dp);
-      scene.add(dp);
+    ({ doug, dougMesh, dougPoints } = initDoug(doug, scene, dougMesh, dougPoints));
 
-      startTime = Date.now();
-      timeDelta = 0;
-      
-    }
+    initDougPoints();
 
-    controls = new OrbitControls(camera);
-    scene.add(camera);
-    camera.position.set(scene.position.x + 10, scene.position.y + 10, scene.position.z + 30);
-    controls.update();
+    ({ controls, mixer, pointLight } = setScene(controls, camera, scene, mixer, object, actions, pointLight));
 
-    // and then just look at it!
-    camera.lookAt(scene.position);
-    controls.update();
 
-    // The mixer controls your ActionClips, and lets you do animation timeline stuff
-    mixer = new THREE.AnimationMixer(object.scene);
-
-    // ActionClips are what let you define settings for animations, and play/stop them
-    actions.push(mixer.clipAction(object.animations[0]));
-    actions[0].play();  
-
-    // we can detect when an animation has looped. There's also a 'finished' event.
-    mixer.addEventListener( 'loop', function( e ) {
-      console.log("Animation has looped");
-    });
-
-    // add some lightz
-    // var ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
-    // scene.add( ambientLight );
-
-    pointLight = new THREE.PointLight( 0xFFFFFF, 0.5 );
-    scene.add( pointLight );
 
     animate();
+
+    function initDougPoints() {
+      for (let i = 0; i < 5; i++) {
+        console.log(THREE.ShaderLib);
+        const pointsMaterialShader = THREE.ShaderLib.points;
+        const uniforms = {
+          time: {
+            type: 'f',
+            value: 0
+          },
+          size: {
+            type: 'f',
+            value: 2
+          },
+          scale: {
+            type: 'f',
+            value: 1
+          },
+          dougX: {
+            type: 'f',
+            value: 0
+          }
+        };
+        const customUniforms = THREE.UniformsUtils.merge([pointsMaterialShader, uniforms]);
+        const shaderMaterialParams = {
+          uniforms: customUniforms,
+          vertexShader: customVertexShader,
+          fragmentShader: customFragmentShader //pointsMaterialShader.fragmentShader,
+        };
+        const pointMat = new THREE.ShaderMaterial(shaderMaterialParams);
+        const dp = new THREE.Points(dougMesh.geometry, pointMat);
+        dp.position.set(0, 2, 278);
+        dp.scale.set(0.14 + (i * 0.002), 0.14 + (i * 0.002), 0.14 + (i * 0.002));
+        dp.positionScalar = Math.random() * 2 - 1;
+        console.log('pointMat:  ', pointMat);
+        dougPoints.push(dp);
+        scene.add(dp);
+        startTime = Date.now();
+        time = 0;
+      }
+    }
   }
 
   function updateDougPoints() {
@@ -133,20 +104,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // update shader uniform -
       dp.material.uniforms.dougX.value = dp.position.x;
-      dp.material.needsUpdate = true;
+      dp.material.uniforms.dougX.needsUpdate = true;
     }
 
 
   }
 
-  function normalize(x, fromMin, fromMax) {
-    let totalRange;
-
-    x = Math.abs(x);
-    totalRange = Math.abs(fromMin) + Math.abs(fromMax);
-    // now we can map out the range from 0 to the totalRange and get a normalized (0 - 1) value
-    return x / totalRange;
-  }
+  
 
   function updateDougAlpha() {
     let dougPosNormalized = normalize(dougPoints[0].position.x, -30, 30);
@@ -158,10 +122,15 @@ document.addEventListener("DOMContentLoaded", () => {
     requestAnimationFrame( animate );
     updateDougPoints();
 
-    timeDelta = Date.now() - startTime;
+    time = performance.now() / 1000;
 
-    dougPoints[0].material.uniforms.timeDelta.value = timeDelta;
-    // console.log('dougPoints[0]:  ', dougPoints[0]);
+    for(let i = 0; i < dougPoints.length; i++) {
+      dougPoints[i].material.uniforms.time.value = time;
+      dougPoints[i].material.uniforms.time.needsUpdate = true;
+      // console.log('dougPoints[0]:  ', dougPoints[0]);
+
+    }
+
 
     updateDougAlpha();
     render();
@@ -178,8 +147,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderer.render( scene, camera );
 
+    let dougPosNormalized = normalize(dougPoints[0].position.x, -30, 30);
     // flickery light effect
-    pointLight.position.set(r * Math.cos(angle), r * Math.sin(angle), 0);
+    // pointLight.position.set(r * Math.cos(angle), r * Math.sin(angle), 0);
+    // move lightslowly effect
+    // pointLight.position.x -= 2;
+    // animate light distance
+    pointLight.distance = (1 - dougPosNormalized) * 20;//Math.sin(time);
 
     // slow doug rotation
     // doug.rotation.x += 0.0025;
@@ -192,10 +166,61 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 });
+
+
+
+function initDoug(doug, scene, dougMesh, dougPoints) {
+  doug = scene.children[2];
+  dougMesh = doug.children[0];
+  dougMesh.material.transparent = true;
+  // dougMesh.material.flatShading = true;
+  dougPoints = [];
+  return { doug, dougMesh, dougPoints };
+}
+
+function setScene(controls, camera, scene, mixer, object, actions, pointLight) {
+  controls = new OrbitControls(camera);
+  scene.add(camera);
+  camera.position.set(scene.position.x + 10, scene.position.y + 10, scene.position.z + 30);
+  // and then just look at it!
+  let camPos = new THREE.Vector3(-12.75, 4.91, -28.39);
+  let camRot = new THREE.Euler(-2.97, -0.4166, -3.0716);
+  camera.position.set(camPos.x, camPos.y, camPos.z);
+  camera.rotation.set(camRot.x, camRot.y, camRot.z);
+  camera.lookAt(scene.position);
+  controls.update();
+
+  controls.update();
+  // The mixer controls your ActionClips, and lets you do animation timeline stuff
+  mixer = new THREE.AnimationMixer(object.scene);
+  // ActionClips are what let you define settings for animations, and play/stop them
+  actions.push(mixer.clipAction(object.animations[0]));
+  actions[0].play();
+  // we can detect when an animation has looped. There's also a 'finished' event.
+  mixer.addEventListener('loop', function (e) {
+    console.log("Animation has looped");
+  });
+  // add some lightz
+  // var ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
+  // scene.add( ambientLight );
+  pointLight = new THREE.PointLight(0xFFFFFF, 100);
+  scene.add(pointLight);
+  return { controls, mixer, pointLight };
+}
+
 function onDocumentMouseMove(event) {
   event.preventDefault();
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   // console.log('mouse:  ', mouse);
 
+}
+
+function normalize(x, fromMin, fromMax) {
+  let totalRange;
+
+  x = Math.abs(x);
+  totalRange = Math.abs(fromMin) + Math.abs(fromMax);
+  // now we can map out the range from 0 to the totalRange and get a normalized (0 - 1) value
+  return x / totalRange;
 }

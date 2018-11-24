@@ -1,7 +1,7 @@
 export default `
 uniform float size;
 uniform float scale;
-uniform float timeDelta;
+uniform float time;
 uniform float dougX;
 
 //
@@ -189,10 +189,10 @@ void main() {
   // <project_vertex>
   //
   vec3 p = transformed;
-  // float relTimeX = timeDelta * p.x;
-  float money = 0.0005;
-  float particleAmp = 2.0 * dougX;
-  p.y += sin(timeDelta * money * p.x) * particleAmp;
+  // float relTimeX = time * p.x;
+  float money = 0.005;
+  float particleAmp = 10.0 * dougX;
+  p.y += sin(time * money * p.x) * particleAmp;
 
   vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );
 

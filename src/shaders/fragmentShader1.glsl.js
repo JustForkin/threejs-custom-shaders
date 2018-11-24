@@ -11,7 +11,7 @@ void main() {
   float normalizedDougX = abs(dougX) / distFromCenter;
 
 
-  gl_FragColor = vec4(1.0 - normalizedDougX, 1.0 - normalizedDougX, 1.0 - normalizedDougX, 1.0);
+  gl_FragColor = vec4(1.0 - normalizedDougX, 1.0 - normalizedDougX, 1.0 - normalizedDougX, 0.5);
 
 }
 `;
