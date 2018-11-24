@@ -58,6 +58,18 @@ document.addEventListener("DOMContentLoaded", () => {
         timeDelta: {
           type: 'f',
           value: 0
+        },
+        size: {
+          type: 'f',
+          value: 6
+        },
+        scale: {
+          type: 'f',
+          value: 1
+        },
+        color: {
+          type: 'c',
+          value: new THREE.Color(0xb4d455)
         }
       };
       const customUniforms = THREE.UniformsUtils.merge([pointsMaterialShader, uniforms]);
@@ -95,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ActionClips are what let you define settings for animations, and play/stop them
     actions.push(mixer.clipAction(object.animations[0]));
-    actions[0].play();
+    // actions[0].play();  // not sure why but this was causing the shader to glitch!
 
     // we can detect when an animation has looped. There's also a 'finished' event.
     mixer.addEventListener( 'loop', function( e ) {
@@ -106,8 +118,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // var ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
     // scene.add( ambientLight );
 
-    pointLight = new THREE.PointLight( 0xf04040, THREE.Vector3(0, 0, 0) );
-    scene.add( pointLight );
+    // pointLight = new THREE.PointLight( 0xf04040, THREE.Vector3(0, 0, 0) );
+    // scene.add( pointLight );
 
     animate();
   }
@@ -145,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
     timeDelta = Date.now() - startTime;
 
     dougPoints[0].material.uniforms.timeDelta.value = timeDelta;
-    console.log('dougPoints[0]:  ', dougPoints[0]);
+    // console.log('dougPoints[0]:  ', dougPoints[0]);
 
     updateDougAlpha();
     render();
@@ -163,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderer.render( scene, camera );
 
     // flickery light effect
-    pointLight.position.set(r * Math.cos(angle), r * Math.sin(angle), 0);
+    // pointLight.position.set(r * Math.cos(angle), r * Math.sin(angle), 0);
 
     // slow doug rotation
     // doug.rotation.x += 0.0025;
