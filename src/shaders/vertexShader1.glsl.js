@@ -2,6 +2,7 @@ export default `
 uniform float size;
 uniform float scale;
 uniform float timeDelta;
+uniform float dougPos;
 
 //
 // <common>
@@ -190,7 +191,7 @@ void main() {
   vec3 p = transformed;
   // float relTimeX = timeDelta * p.x;
   float money = 0.0005;
-  float particleAmp = 30.0;
+  float particleAmp = 30.0 * dougPos;
   p.y += sin(timeDelta * money * p.x) * particleAmp;
 
   vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );

@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderer = new THREE.WebGLRenderer({
       antialias: true,	// to get smoother output
     });
-    renderer.setClearColor( 0x3b3b3b );
+    renderer.setClearColor( 0x000000 );
     renderer.setSize( window.innerWidth, window.innerHeight );
     container.appendChild(renderer.domElement);
 
@@ -61,11 +61,15 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         size: {
           type: 'f',
-          value: 3
+          value: 2
         },
         scale: {
           type: 'f',
           value: 1
+        },
+        dougPos: {
+          type: 'f',
+          value: 0
         }
       };
       const customUniforms = THREE.UniformsUtils.merge([pointsMaterialShader, uniforms]);
@@ -114,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // var ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
     // scene.add( ambientLight );
 
-    pointLight = new THREE.PointLight( 0x42AFEF, THREE.Vector3(0, 0, 0) );
+    pointLight = new THREE.PointLight( 0xFFFFFF, 0.5 );
     scene.add( pointLight );
 
     animate();
@@ -125,8 +129,12 @@ document.addEventListener("DOMContentLoaded", () => {
       let dp = dougPoints[i];
 
       dp.position.x += mouse.x * dp.positionScalar;
-      // dp.position.y += mouse.y * dp.positionScalar;
+
+      // update shader uniform -
+      dp.material.uniforms.dougPos.value = dp.position.x;
     }
+
+
   }
 
   function normalize(x, fromMin, fromMax) {
@@ -140,15 +148,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateDougAlpha() {
     let dougPosNormalized = normalize(dougPoints[0].position.x, -30, 30);
-    // console.log('dougPosNormalized:  ', dougPosNormalized);
-    // console.log('dougPoints[0].position.x:  ', dougPoints[0].position.x);
     dougMesh.material.opacity = 1 - Math.min(dougPosNormalized, 1); 
   }
 
   
   function animate() {
     requestAnimationFrame( animate );
-    // updateDougPoints();
+    updateDougPoints();
 
     timeDelta = Date.now() - startTime;
 
