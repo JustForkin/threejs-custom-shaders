@@ -47,12 +47,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // now to set up our scene
     scene = object.scene;
     doug = scene.children[2];
-    scene.remove(doug);
     dougMesh = doug.children[0];
     dougMesh.material.transparent = true;
     dougPoints = [];
 
-    for(let i = 0; i < 1; i++) {
+    for(let i = 0; i < 5; i++) {
       console.log(THREE.ShaderLib);
       const pointsMaterialShader = THREE.ShaderLib.points;
       const uniforms = {
@@ -62,15 +61,11 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         size: {
           type: 'f',
-          value: 6
+          value: 3
         },
         scale: {
           type: 'f',
           value: 1
-        },
-        color: {
-          type: 'v3f',
-          value: new THREE.Color(0xb4d455)
         }
       };
       const customUniforms = THREE.UniformsUtils.merge([pointsMaterialShader, uniforms]);
@@ -108,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ActionClips are what let you define settings for animations, and play/stop them
     actions.push(mixer.clipAction(object.animations[0]));
-    // actions[0].play();  // not sure why but this was causing the shader to glitch!
+    actions[0].play();  // not sure why but this was causing the shader to glitch!
 
     // we can detect when an animation has looped. There's also a 'finished' event.
     mixer.addEventListener( 'loop', function( e ) {
@@ -119,8 +114,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // var ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
     // scene.add( ambientLight );
 
-    // pointLight = new THREE.PointLight( 0xf04040, THREE.Vector3(0, 0, 0) );
-    // scene.add( pointLight );
+    pointLight = new THREE.PointLight( 0x42AFEF, THREE.Vector3(0, 0, 0) );
+    scene.add( pointLight );
 
     animate();
   }
@@ -176,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderer.render( scene, camera );
 
     // flickery light effect
-    // pointLight.position.set(r * Math.cos(angle), r * Math.sin(angle), 0);
+    pointLight.position.set(r * Math.cos(angle), r * Math.sin(angle), 0);
 
     // slow doug rotation
     // doug.rotation.x += 0.0025;

@@ -187,10 +187,13 @@ void main() {
   //
   // <project_vertex>
   //
-  vec3 wobbleVec = transformed;
-  wobbleVec.x += sin(timeDelta * .000005) * 100.0;
+  vec3 p = transformed;
+  // float relTimeX = timeDelta * p.x;
+  float money = 0.0005;
+  float particleAmp = 30.0;
+  p.y += sin(timeDelta * money * p.x) * particleAmp;
 
-  vec4 mvPosition = modelViewMatrix * vec4( wobbleVec, 1.0 );
+  vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );
 
   gl_Position = projectionMatrix * mvPosition;
 
