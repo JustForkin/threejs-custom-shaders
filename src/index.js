@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     doug = scene.children[2];
     dougMesh = doug.children[0];
     dougMesh.material.transparent = true;
+    // dougMesh.material.flatShading = true;
     dougPoints = [];
 
     for(let i = 0; i < 5; i++) {
@@ -107,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ActionClips are what let you define settings for animations, and play/stop them
     actions.push(mixer.clipAction(object.animations[0]));
-    actions[0].play();  // not sure why but this was causing the shader to glitch!
+    actions[0].play();  
 
     // we can detect when an animation has looped. There's also a 'finished' event.
     mixer.addEventListener( 'loop', function( e ) {
@@ -132,6 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // update shader uniform -
       dp.material.uniforms.dougX.value = dp.position.x;
+      dp.material.needsUpdate = true;
     }
 
 
