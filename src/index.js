@@ -8,6 +8,7 @@ import Hallways from './app/Hallways.js';
 import {TweenMax, TimelineLite} from "gsap/TweenMax";
 import OrbitControls from 'orbit-controls-es6';
 import PromisedLoad from './app/PromisedLoad';
+import customVertexShader from './shaders/vertexShader1.glsl';
 
 let mouse = new THREE.Vector2();
 
@@ -24,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let pointLight;
   let doug, dougMesh, dougPoints, dougPointsMat;
   let controls;
+  let startTime, timeDelta;
 
   initialize();
 
@@ -44,25 +46,38 @@ document.addEventListener("DOMContentLoaded", () => {
     // now to set up our scene
     scene = object.scene;
     doug = scene.children[2];
+    scene.remove(doug);
     dougMesh = doug.children[0];
     dougMesh.material.transparent = true;
     dougPoints = [];
 
-    for(let i = 0; i < 5; i++) {
-      let pointMat = new THREE.PointsMaterial({ color: 0x888888 });
-      let dp = new THREE.Points(dougMesh.geometry, pointMat);
+    for(let i = 0; i < 1; i++) {
+      console.log(THREE.ShaderLib);
+      const pointsMaterialShader = THREE.ShaderLib.points;
+      const uniforms = {
+        timeDelta: {
+          type: 'f',
+          value: 0
+        }
+      };
+      const customUniforms = THREE.UniformsUtils.merge([pointsMaterialShader, uniforms]);
+      const shaderMaterialParams = {
+        uniforms: customUniforms,
+        vertexShader: customVertexShader,
+        fragmentShader: pointsMaterialShader.fragmentShader,
+      };
+      const pointMat = new THREE.ShaderMaterial(shaderMaterialParams);
+      const dp = new THREE.Points(dougMesh.geometry, pointMat);
       dp.position.set(0, 2, 278);
       dp.scale.set(0.14 + (i * 0.002), 0.14 + (i * 0.002), 0.14 + (i * 0.002));
       dp.positionScalar = Math.random() * 2 - 1;
-      console.log(pointMat);
-
-      // offset the position just a touch
-      // dp.position.x += Math.random() * 10.0;
-      // dp.position.y += Math.random() * 10.0;
-      // dp.position.z += Math.random() * 10.0;
+      console.log('pointMat:  ', pointMat);
 
       dougPoints.push(dp);
       scene.add(dp);
+
+      startTime = Date.now();
+      timeDelta = 0;
       
     }
 
@@ -122,9 +137,16 @@ document.addEventListener("DOMContentLoaded", () => {
     dougMesh.material.opacity = 1 - Math.min(dougPosNormalized, 1); 
   }
 
+  
   function animate() {
     requestAnimationFrame( animate );
-    updateDougPoints();
+    // updateDougPoints();
+
+    timeDelta = Date.now() - startTime;
+
+    dougPoints[0].material.uniforms.timeDelta.value = timeDelta;
+    console.log('dougPoints[0]:  ', dougPoints[0]);
+
     updateDougAlpha();
     render();
   }
@@ -154,7 +176,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 });
-
 function onDocumentMouseMove(event) {
   event.preventDefault();
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
