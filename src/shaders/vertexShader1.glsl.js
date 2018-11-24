@@ -188,7 +188,7 @@ void main() {
   // <project_vertex>
   //
   vec3 wobbleVec = transformed;
-  wobbleVec.x += sin(timeDelta * .00005) * 100.0;
+  wobbleVec.x += sin(timeDelta * .000005) * 100.0;
 
   vec4 mvPosition = modelViewMatrix * vec4( wobbleVec, 1.0 );
 

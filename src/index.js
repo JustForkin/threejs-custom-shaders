@@ -9,6 +9,7 @@ import {TweenMax, TimelineLite} from "gsap/TweenMax";
 import OrbitControls from 'orbit-controls-es6';
 import PromisedLoad from './app/PromisedLoad';
 import customVertexShader from './shaders/vertexShader1.glsl';
+import customFragmentShader from './shaders/fragmentShader1.glsl';
 
 let mouse = new THREE.Vector2();
 
@@ -68,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
           value: 1
         },
         color: {
-          type: 'c',
+          type: 'v3f',
           value: new THREE.Color(0xb4d455)
         }
       };
@@ -76,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const shaderMaterialParams = {
         uniforms: customUniforms,
         vertexShader: customVertexShader,
-        fragmentShader: pointsMaterialShader.fragmentShader,
+        fragmentShader: customFragmentShader//pointsMaterialShader.fragmentShader,
       };
       const pointMat = new THREE.ShaderMaterial(shaderMaterialParams);
       const dp = new THREE.Points(dougMesh.geometry, pointMat);
