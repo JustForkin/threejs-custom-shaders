@@ -8,8 +8,9 @@ import Hallways from './app/Hallways.js';
 import {TweenMax, TimelineLite} from "gsap/TweenMax";
 import OrbitControls from 'orbit-controls-es6';
 import PromisedLoad from './app/PromisedLoad';
+import vertexShader1 from './shaders/vertexShader1.glsl';
 
-let renderer, scene, Josh, controls, camera, material, pointLight, geometry, sphere, light = null;
+let renderer, scene, Josh, joshMesh, controls, camera, material, pointLight, geometry, sphere, light = null;
 let nMax;
 let mouse = {
   x: 0,
@@ -41,19 +42,20 @@ document.addEventListener("DOMContentLoaded", () => {
       renderer = new THREE.WebGLRenderer({
         antialias: true,	// to get smoother output
       });
-      renderer.setClearColor( 0x44f );
+      renderer.setClearColor( 0x800 );
       renderer.setSize( window.innerWidth, window.innerHeight );
       container.appendChild(renderer.domElement);
       controls = new OrbitControls( camera, renderer.domElement );
-      camera.position.set(2.74, 78.66, 18.86);
+      // camera.position.set(2.74, 78.66, 18.86);
+      // controls.update();
+      // camera.rotation.set(-0.39, 0.11, 0.04);
+      // controls.update();
+      // setInterval(() => {
+      //   console.log(camera.position);
+      //   console.log(camera.rotation);
+      // }, 1000)
+      camera.position.y += 100
       controls.update();
-      camera.rotation.set(-0.39, 0.11, 0.04);
-      controls.update();
-      setInterval(() => {
-        console.log(camera.position);
-        console.log(camera.rotation);
-      }, 1000)
-      // camera.position.y += 100
       controls.enabled = true;
 
       PromisedLoad.GetGLTF('../static/josh.glb', JoshModelLoaded);
@@ -83,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
 
     if(nMax != undefined && Josh) {
-      Josh.children[0].geometry.setDrawRange(
+      joshMesh.geometry.setDrawRange(
         0, 
         nMax * Math.abs(mouse.x));
       
@@ -92,30 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   }
 
-  function addSphere() {
-    let alphaMap = new THREE.TextureLoader().load('../static/texture.png');
-
-    geometry = new THREE.SphereBufferGeometry( 50, 32, 32, 0, 6.3, 5, 1.8 );
-    // geometry.drawRange.count = 2000;
-    material = new THREE.MeshStandardMaterial( { 
-      color: "#000",
-      transparent: true,
-      side: THREE.DoubleSide, 
-      alphaTest: 0.5, 
-    } );
-    material.alphaMap = alphaMap;
-    material.alphaMap.magFilter = THREE.NearestFilter;
-    material.alphaMap.wrapT = THREE.RepeatWrapping;
-    material.alphaMap.repeat.y = 1;
-    sphere = new THREE.Mesh( geometry, material );
-    scene.add( sphere );
-
-    //position at third eye
-    sphere.rotation.x += 90;
-    sphere.position.z -= 40;
-    sphere.position.y += 40;
-
-  }
 
   function addLights() {
     light = new THREE.AmbientLight( 0x404040 ); // soft white light
@@ -127,28 +105,47 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function JoshModelLoaded(importedObject) {
-    let alphaMap = new THREE.TextureLoader().load('../static/texture.png');
-    console.log('importedObject:  ', importedObject);
     Josh = importedObject.scene.children[0];
-    console.log('Josh:  ', Josh);
-    scene.add(Josh);
-    Josh.position.set(0, 0, 0);
-    Josh.position.x -= 2;
-    Josh.rotation.y += 220;
-    Josh.scale.set(200, 200, 200);
+    joshMesh = Josh.children[0];
 
-    Josh.children[0].material = new THREE.MeshStandardMaterial( { 
+    const standardMaterialShader = THREE.ShaderLib.standard;
+    const uniforms = {
+      mouseX: {
+        type: 'f',
+        value: 0
+      }
+    };
+    const customUniforms = THREE.UniformsUtils.merge([standardMaterialShader, uniforms]);
+    const shaderMaterialParams = {
+      uniforms: customUniforms,
+      vertexShader: vertexShader1,
+      fragmentShader: standardMaterialShader.fragmentShader
+    };
+    joshMesh.material = new THREE.ShaderMaterial(shaderMaterialParams);
+
+
+
+    console.log('Josh:  ', Josh);
+    console.log('THREE.ShaderLib:  ', THREE.ShaderLib);
+    
+
+    
+
+    joshMesh.material = new THREE.MeshStandardMaterial( { 
       color: "#44f",
       transparent: true,
       side: THREE.DoubleSide, 
       alphaTest: 0.5, 
+      // opacity: 0.5,
     } );
-    Josh.children[0].alphaMap = alphaMap;
-    Josh.children[0].alphaMap.magFilter = THREE.NearestFilter;
-    Josh.children[0].alphaMap.wrapT = THREE.RepeatWrapping;
-    Josh.children[0].alphaMap.repeat.y = 1;
 
-    nMax = Josh.children[0].geometry.attributes.position.count;
+    nMax = joshMesh.geometry.attributes.position.count;
+    
+    Josh.position.set(0, 0, 0);
+    Josh.position.x -= 2;
+    Josh.rotation.y += 220;
+    Josh.scale.set(200, 200, 200);
+    scene.add(Josh);
 
     // clone josh
     let foo = Josh.clone();
@@ -163,12 +160,9 @@ document.addEventListener("DOMContentLoaded", () => {
     foo.position.x -= 2;
     foo.rotation.y += 220;
     foo.scale.set(250, 250, 250);
-    foo.children[0].alphaMap = alphaMap;
-    foo.children[0].alphaMap.magFilter = THREE.NearestFilter;
-    foo.children[0].alphaMap.wrapT = THREE.RepeatWrapping;
-    foo.children[0].alphaMap.repeat.y = 1;
     foo.children[0].geometry.setDrawRange(190, 200);
     scene.add(foo);
+
     
   }
 
