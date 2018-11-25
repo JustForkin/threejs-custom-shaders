@@ -41,17 +41,24 @@ document.addEventListener("DOMContentLoaded", () => {
       renderer = new THREE.WebGLRenderer({
         antialias: true,	// to get smoother output
       });
-      renderer.setClearColor( 0x1e1e1e );
+      renderer.setClearColor( 0x44f );
       renderer.setSize( window.innerWidth, window.innerHeight );
       container.appendChild(renderer.domElement);
       controls = new OrbitControls( camera, renderer.domElement );
-      camera.position.z = 50;
+      camera.position.set(2.74, 78.66, 18.86);
+      camera.rotation.set(-0.39, 0.11, 0.04);
+      controls.update();
+      setInterval(() => {
+        console.log(camera.position);
+        console.log(camera.rotation);
+      }, 1000)
+      // camera.position.y += 100
       controls.enabled = true;
       controls.update();
 
       PromisedLoad.GetGLTF('../static/josh.glb', JoshModelLoaded);
 
-      addSphere();
+      // addSphere();
 
       addLights();
       
@@ -73,11 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     var delta = clock.getDelta();
     var elapsedTime = Date.now() - start;
 
-    // animate the sphere material
-    material.alphaMap.offset.y = elapsedTime * -0.00007;
-    // rotate the sphere
-    sphere.rotation.y += 0.01;
-    console.log('mouse.x:  ', mouse.x);
+  
 
     if(nMax != undefined && Josh) {
       Josh.children[0].geometry.setDrawRange(
@@ -132,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
     Josh.position.set(0, 0, 0);
     Josh.position.x -= 2;
     Josh.rotation.y += 220;
-    Josh.scale.set(50, 50, 50);
+    Josh.scale.set(200, 200, 200);
 
     Josh.children[0].material = new THREE.MeshStandardMaterial( { 
       color: "#44f",
@@ -156,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alphaTest: 0.5, 
     } );
 
-    foo.position.set(0, 0, -100);
+    foo.position.set(0, 0, 0);
     foo.position.x -= 2;
     foo.rotation.y += 220;
     foo.scale.set(250, 250, 250);
