@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
       container.appendChild(renderer.domElement);
       controls = new OrbitControls( camera, renderer.domElement );
       camera.position.set(2.74, 78.66, 18.86);
+      controls.update();
       camera.rotation.set(-0.39, 0.11, 0.04);
       controls.update();
       setInterval(() => {
@@ -54,7 +55,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 1000)
       // camera.position.y += 100
       controls.enabled = true;
-      controls.update();
 
       PromisedLoad.GetGLTF('../static/josh.glb', JoshModelLoaded);
 
