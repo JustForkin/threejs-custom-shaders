@@ -135,6 +135,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     updateDougAlpha();
+
+    // updateDougAnimation();
+
     render();
   }
 
@@ -166,6 +169,12 @@ document.addEventListener("DOMContentLoaded", () => {
     controls.update();
   }
 
+  function updateDougAnimation() {
+    let normalizedXPos = normalize(dougPoints[0].position.x, -30, 30);
+    mixer.timeScale = normalizedXPos * 40 - 20;
+    // console.log('normalizedXPos:  ', normalizedXPos);
+    // doug.scale.x += normalizedXPos * 0.005;
+  }
 
 });
 
@@ -217,8 +226,12 @@ function setScene(controls, camera, scene, mixer, object, actions, pointLight) {
   // The mixer controls your ActionClips, and lets you do animation timeline stuff
   mixer = new THREE.AnimationMixer(object.scene);
   // ActionClips are what let you define settings for animations, and play/stop them
+  console.log('object.animations:  ', object.animations);
+  console.log('mixer:  ', mixer);
   actions.push(mixer.clipAction(object.animations[0]));
+  actions[0].loop = THREE.LoopPingPong;
   actions[0].play();
+  actions[0].timeScale = 0.5;
   // we can detect when an animation has looped. There's also a 'finished' event.
   mixer.addEventListener('loop', function (e) {
     console.log("Animation has looped");
