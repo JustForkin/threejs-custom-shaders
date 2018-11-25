@@ -5,13 +5,12 @@ import * as THREE from 'three';
 import ScrollCam from './app/ScrollCam.js';
 import PostEffects from './app/PostEffects.js';
 import Hallways from './app/Hallways.js';
-import {TweenMax, TimelineLite} from "gsap/TweenMax";
 import OrbitControls from 'orbit-controls-es6';
 import PromisedLoad from './app/PromisedLoad';
 import vertexShader1 from './shaders/vertexShader1.glsl';
 
 let renderer, scene, Josh, joshMesh, controls, camera, material, pointLight, geometry, sphere, light = null;
-let nMax;
+let time = 0;
 let mouse = {
   x: 0,
   y: 0,
@@ -42,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderer = new THREE.WebGLRenderer({
         antialias: true,	// to get smoother output
       });
-      renderer.setClearColor( 0x800 );
+      renderer.setClearColor( 0xfee );
       renderer.setSize( window.innerWidth, window.innerHeight );
       container.appendChild(renderer.domElement);
       controls = new OrbitControls( camera, renderer.domElement );
@@ -81,14 +80,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // let all of our scriptz run their respective update loop
     var delta = clock.getDelta();
     var elapsedTime = Date.now() - start;
-
+    time = performance.now() / 1000;
   
 
-    if(nMax != undefined && Josh) {
-      joshMesh.geometry.setDrawRange(
-        0, 
-        nMax * Math.abs(mouse.x));
-      
+    if(Josh) {
+      joshMesh.material.uniforms.mouseX.value = Math.abs(mouse.x);
+      joshMesh.material.uniforms.time.value = time;
+
+      joshMesh.material.uniforms.time.needsUpdate = true;
+      joshMesh.material.uniforms.mouseX.needsUpdate = true;
     }
     
 
@@ -112,7 +112,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const uniforms = {
       mouseX: {
         type: 'f',
-        value: 0
+        value: 0,
+        needsUpdate: true,
+      },
+      time: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
       }
     };
     const customUniforms = THREE.UniformsUtils.merge([standardMaterialShader, uniforms]);
@@ -129,39 +135,21 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('THREE.ShaderLib:  ', THREE.ShaderLib);
     
 
-    
 
-    joshMesh.material = new THREE.MeshStandardMaterial( { 
-      color: "#44f",
-      transparent: true,
-      side: THREE.DoubleSide, 
-      alphaTest: 0.5, 
-      // opacity: 0.5,
-    } );
-
-    nMax = joshMesh.geometry.attributes.position.count;
     
     Josh.position.set(0, 0, 0);
-    Josh.position.x -= 2;
-    Josh.rotation.y += 220;
+    Josh.position.x -= 100;
+    Josh.rotation.y += 200;
     Josh.scale.set(200, 200, 200);
     scene.add(Josh);
 
-    // clone josh
-    let foo = Josh.clone();
-    foo.children[0].material = new THREE.MeshStandardMaterial( { 
-      color: "#44f",
-      transparent: true,
-      side: THREE.DoubleSide, 
-      alphaTest: 0.5, 
-    } );
+    for(let i = 0; i < 6; i++) {
+      let newJosh = Josh.clone();
+      let newScale = 200 + (i * 2);
+      newJosh.scale.set(newScale, newScale, newScale);
+      scene.add(newJosh);
 
-    foo.position.set(0, 0, 0);
-    foo.position.x -= 2;
-    foo.rotation.y += 220;
-    foo.scale.set(250, 250, 250);
-    foo.children[0].geometry.setDrawRange(190, 200);
-    scene.add(foo);
+    }
 
     
   }
