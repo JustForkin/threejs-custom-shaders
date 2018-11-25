@@ -55,6 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
     animate();
 
     function initDougPoints() {
+      dougPoints = [];
+
       for (let i = 0; i < 5; i++) {
         console.log(THREE.ShaderLib);
         const pointsMaterialShader = THREE.ShaderLib.points;
@@ -169,13 +171,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-function initDoug(doug, scene, dougMesh, dougPoints) {
+function initDoug(doug, scene, dougMesh) {
   doug = scene.children[2];
   dougMesh = doug.children[0];
   dougMesh.material.transparent = true;
   // dougMesh.material.flatShading = true;
-  dougPoints = [];
-  return { doug, dougMesh, dougPoints };
+
+  // const standardMaterialShader = THREE.ShaderLib.standard;
+  // const uniforms = {
+  //   time: {
+  //     type: 'f',
+  //     value: 0
+  //   }
+  // };
+  // const customUniforms = THREE.UniformsUtils.merge([standardMaterialShader, uniforms]);
+  // const shaderMaterialParams = {
+  //   uniforms: customUniforms,
+  //   vertexShader: standardMaterialShader.vertexShader,
+  //   fragmentShader: standardMaterialShader.fragmentShader
+  // };
+  // const customMaterial = new THREE.ShaderMaterial(shaderMaterialParams);
+  
+  // dougMesh.material = customMaterial;
+
+
+
+  console.log('doug:  ', doug);
+  console.log('dougMesh:  ', dougMesh);
+  return { doug, dougMesh };
 }
 
 function setScene(controls, camera, scene, mixer, object, actions, pointLight) {
