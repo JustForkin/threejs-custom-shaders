@@ -11,8 +11,22 @@ import PromisedLoad from './app/PromisedLoad';
 
 let renderer, scene, Josh, controls, camera, material, pointLight, geometry, sphere, light = null;
 let nMax;
+let mouse = {
+  x: 0,
+  y: 0,
+};
 const container = document.getElementById('container');
 const clock = new THREE.Clock();
+
+window.addEventListener('mousemove', onDocumentMouseMove);
+
+function onDocumentMouseMove(event) {
+  event.preventDefault();
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  // console.log('mouse:  ', mouse);
+
+}
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -63,9 +77,12 @@ document.addEventListener("DOMContentLoaded", () => {
     material.alphaMap.offset.y = elapsedTime * -0.00007;
     // rotate the sphere
     sphere.rotation.y += 0.01;
+    console.log('mouse.x:  ', mouse.x);
 
     if(nMax != undefined && Josh) {
-      Josh.children[0].geometry.setDrawRange(0 * Math.abs(Math.cos(elapsedTime * 0.1)), nMax * Math.abs(Math.sin(elapsedTime * 0.1)));
+      Josh.children[0].geometry.setDrawRange(
+        0, 
+        nMax * Math.abs(mouse.x));
       
     }
     
