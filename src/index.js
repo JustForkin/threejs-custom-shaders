@@ -129,7 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
     for(let i = 0; i < dougPoints.length; i++) {
       dougPoints[i].material.uniforms.time.value = time;
       dougPoints[i].material.uniforms.time.needsUpdate = true;
-      // console.log('dougPoints[0]:  ', dougPoints[0]);
 
     }
 
@@ -232,10 +231,7 @@ function setScene(controls, camera, scene, mixer, object, actions, pointLight) {
   actions[0].loop = THREE.LoopPingPong;
   actions[0].play();
   actions[0].timeScale = 0.5;
-  // we can detect when an animation has looped. There's also a 'finished' event.
-  mixer.addEventListener('loop', function (e) {
-    console.log("Animation has looped");
-  });
+
   // add some lightz
   // var ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
   // scene.add( ambientLight );
