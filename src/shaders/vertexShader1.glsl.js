@@ -69,10 +69,11 @@ void main() {
   
   // project_vertex
   vec3 p = transformed;
-  // vec3 rotatedNormal = rotate(p, vNormal, abs(sin(mouseX)));
+  float d = distance(vec3(0.0, 0.0, 0.0), p);
   
-  // p += rotatedNormal * abs(sin(mouseX)) * -1.0;
-  p += vNormal * abs(sin(mouseX)) * -1.0;
+  p += (vNormal + d) * abs(sin(mouseX)) * -1.0;
+
+
 	vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );
   gl_Position = projectionMatrix * mvPosition;
 

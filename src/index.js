@@ -143,9 +143,9 @@ document.addEventListener("DOMContentLoaded", () => {
     Josh.scale.set(200, 200, 200);
     scene.add(Josh);
 
-    for(let i = 0; i < 6; i++) {
+    for(let i = 0; i < 8; i++) {
       let newJosh = Josh.clone();
-      let newScale = 200 + (i * 2);
+      let newScale = 200 + (i * 3);
       newJosh.scale.set(newScale, newScale, newScale);
       scene.add(newJosh);
 
