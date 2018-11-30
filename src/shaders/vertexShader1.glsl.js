@@ -2,6 +2,7 @@ export default `
 #define PHYSICAL
 
 uniform float mouseX;
+uniform float mouseY;
 uniform float time;
 
 varying vec3 vViewPosition;
@@ -71,7 +72,9 @@ void main() {
   vec3 p = transformed;
   float d = distance(vec3(0.0, 0.0, 0.0), p);
   
-  p += (vNormal + d) * abs(sin(mouseX)) * -1.0;
+  vec3 xTrans = (vNormal + d) * abs(sin(mouseX)) * -1.0;
+
+  p += xTrans;
 
 
 	vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );

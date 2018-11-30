@@ -8,6 +8,7 @@ import Hallways from './app/Hallways.js';
 import OrbitControls from 'orbit-controls-es6';
 import PromisedLoad from './app/PromisedLoad';
 import vertexShader1 from './shaders/vertexShader1.glsl';
+import fragmentShader1 from './shaders/fragmentShader1.glsl';
 
 let renderer, scene, Josh, joshMesh, controls, camera, material, pointLight, geometry, sphere, light = null;
 let time = 0;
@@ -17,6 +18,8 @@ let mouse = {
 };
 const container = document.getElementById('container');
 const clock = new THREE.Clock();
+const TOTAL_JOSH = 10;
+let joshArr = [];
 
 window.addEventListener('mousemove', onDocumentMouseMove);
 
@@ -45,15 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
       renderer.setSize( window.innerWidth, window.innerHeight );
       container.appendChild(renderer.domElement);
       controls = new OrbitControls( camera, renderer.domElement );
-      // camera.position.set(2.74, 78.66, 18.86);
-      // controls.update();
-      // camera.rotation.set(-0.39, 0.11, 0.04);
-      // controls.update();
-      // setInterval(() => {
-      //   console.log(camera.position);
-      //   console.log(camera.rotation);
-      // }, 1000)
-      camera.position.y += 100
       controls.update();
       controls.enabled = true;
 
@@ -85,10 +79,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if(Josh) {
       joshMesh.material.uniforms.mouseX.value = Math.abs(mouse.x);
+      joshMesh.material.uniforms.mouseY.value = Math.abs(mouse.y);
       joshMesh.material.uniforms.time.value = time;
 
       joshMesh.material.uniforms.time.needsUpdate = true;
       joshMesh.material.uniforms.mouseX.needsUpdate = true;
+      joshMesh.material.uniforms.mouseY.needsUpdate = true;
+
+      // for(let i = 0; i < joshArr.length; i++) {
+      //   joshArr[i].rotation.y += 0.01;
+      // }
+      
     }
     
 
@@ -115,19 +116,35 @@ document.addEventListener("DOMContentLoaded", () => {
         value: 0,
         needsUpdate: true,
       },
+      mouseY: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
       time: {
         type: 'f',
         value: 0,
         needsUpdate: true,
+      }, 
+      opacity: {
+        type: 'f',
+        value: 1,
+        needsUpdate: true,
+      },
+      diffuse: {
+        type: 'v3f',
+        value: new THREE.Vector3(0.9, 0.1, 0.5)
       }
     };
     const customUniforms = THREE.UniformsUtils.merge([standardMaterialShader, uniforms]);
     const shaderMaterialParams = {
       uniforms: customUniforms,
       vertexShader: vertexShader1,
-      fragmentShader: standardMaterialShader.fragmentShader
+      fragmentShader: fragmentShader1
     };
     joshMesh.material = new THREE.ShaderMaterial(shaderMaterialParams);
+
+    
 
 
 
@@ -137,16 +154,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     
-    Josh.position.set(0, 0, 0);
+    Josh.position.set(100, -20, -200);
     Josh.position.x -= 100;
-    Josh.rotation.y += 200;
+    Josh.rotation.y += 185;
     Josh.scale.set(200, 200, 200);
+    joshArr.push(Josh);
     scene.add(Josh);
 
-    for(let i = 0; i < 8; i++) {
+    for(let i = 0; i < TOTAL_JOSH; i++) {
       let newJosh = Josh.clone();
-      let newScale = 200 + (i * 3);
+      // newJosh.children[0].material.transparent = true;
+      // newJosh.children[0].material.opacity = 0.8;
+      let newScale = 200 + (i * 2);
       newJosh.scale.set(newScale, newScale, newScale);
+      joshArr.push(newJosh);
       scene.add(newJosh);
 
     }
