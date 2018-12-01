@@ -57,15 +57,15 @@ document.addEventListener("DOMContentLoaded", () => {
       renderer = new THREE.WebGLRenderer({
         antialias: true,	// to get smoother output
       });
-      renderer.setClearColor( 0xeeeeee );
+      renderer.setClearColor( 0xf00f00 );
       renderer.setSize( window.innerWidth, window.innerHeight );
       container.appendChild(renderer.domElement);
-      camera.position.z += -20;
+      camera.position.z += 20;
       controls = new OrbitControls( camera, renderer.domElement );
       controls.update();
       controls.enabled = true;
 
-      await PromisedLoad.GetGLTF('../static/balls.gltf', modelLoaded);
+      PromisedLoad.GetGLTF('../static/ball.glb', modelLoaded);
 
       
   }
@@ -89,9 +89,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let scaleVal = (Math.abs(Math.sin(time)) * 0.5) * 2;
   
 
-    if(ball) {
-      ball.scale.set(scaleVal)
-    }
+    // if(ball) {
+    //   ball.scale.set(scaleVal)
+    // }
 
     // if(Josh) {
       
@@ -126,14 +126,17 @@ document.addEventListener("DOMContentLoaded", () => {
   function modelLoaded(importedObject) {
     let importedScene = importedObject.scene;
     let ballMesh = importedScene.children[0];
-    let material = new THREE.MeshBasicMaterial();
+    let material = new THREE.MeshBasicMaterial({ 
+      color: 0x2194ce,
+      wireframe: true
+    });
     
-    ballMesh.scale.set(100, 100, 100);
     ball = new THREE.Mesh(ballMesh.geometry, material);
 
-    ball.scale.set(100, 100, 100);
+    // ball.scale.set(100, 100, 100);
     
     scene.add(ball);
+    camera.lookAt(ball.position);
     
     
     addLights();
@@ -142,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('importedScene:  ', importedScene);
     console.log('ball:  ', ball);
     console.log('ballMesh:  ', ballMesh);
+    console.log('scene:  ', scene);
 
     
   }
