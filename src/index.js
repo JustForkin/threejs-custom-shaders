@@ -20,6 +20,18 @@ const container = document.getElementById('container');
 const clock = new THREE.Clock();
 const TOTAL_JOSH = 10;
 let joshArr = [];
+let materialsArr = [];
+let joshColors = [
+  new THREE.Vector3(0.86, 0.29, 0.8),
+  new THREE.Vector3(0.45,0.96,0.25),
+  new THREE.Vector3(0.99,0.97,0.32),
+  new THREE.Vector3(0.43,0.98,0.99),
+  new THREE.Vector3(0.59,0.52,0.54),
+  // glColor3f(0.91,0.92,0.91)
+  new THREE.Vector3(0.91,0.92,0.91),
+];
+let shaderMaterialParamsArr = [];
+let joshMeshArr = [];
 
 window.addEventListener('mousemove', onDocumentMouseMove);
 
@@ -44,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderer = new THREE.WebGLRenderer({
         antialias: true,	// to get smoother output
       });
-      renderer.setClearColor( 0xfee );
+      renderer.setClearColor( 0xfefefe );
       renderer.setSize( window.innerWidth, window.innerHeight );
       container.appendChild(renderer.domElement);
       controls = new OrbitControls( camera, renderer.domElement );
@@ -78,17 +90,19 @@ document.addEventListener("DOMContentLoaded", () => {
   
 
     if(Josh) {
-      joshMesh.material.uniforms.mouseX.value = Math.abs(mouse.x);
-      joshMesh.material.uniforms.mouseY.value = Math.abs(mouse.y);
-      joshMesh.material.uniforms.time.value = time;
-
-      joshMesh.material.uniforms.time.needsUpdate = true;
-      joshMesh.material.uniforms.mouseX.needsUpdate = true;
-      joshMesh.material.uniforms.mouseY.needsUpdate = true;
-
-      // for(let i = 0; i < joshArr.length; i++) {
-      //   joshArr[i].rotation.y += 0.01;
-      // }
+      
+      for(let i = 0; i < joshArr.length; i++) {
+        joshArr[i].children[0].material.uniforms.mouseX.value = Math.abs(mouse.x);
+        joshArr[i].children[0].material.uniforms.mouseY.value = Math.abs(mouse.y);
+        joshArr[i].children[0].material.uniforms.time.value = time;
+  
+        joshArr[i].children[0].material.uniforms.time.needsUpdate = true;
+        joshArr[i].children[0].material.uniforms.mouseX.needsUpdate = true;
+        joshArr[i].children[0].material.uniforms.mouseY.needsUpdate = true;
+        
+        // this makes the whole piece twerk
+        joshArr[i].rotation.x += i * (0.0005);
+      }
       
     }
     
@@ -107,70 +121,82 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function JoshModelLoaded(importedObject) {
     Josh = importedObject.scene.children[0];
-    joshMesh = Josh.children[0];
-
-    const standardMaterialShader = THREE.ShaderLib.standard;
-    const uniforms = {
-      mouseX: {
-        type: 'f',
-        value: 0,
-        needsUpdate: true,
-      },
-      mouseY: {
-        type: 'f',
-        value: 0,
-        needsUpdate: true,
-      },
-      time: {
-        type: 'f',
-        value: 0,
-        needsUpdate: true,
-      }, 
-      opacity: {
-        type: 'f',
-        value: 1,
-        needsUpdate: true,
-      },
-      diffuse: {
-        type: 'v3f',
-        value: new THREE.Vector3(0.9, 0.1, 0.5)
-      }
-    };
-    const customUniforms = THREE.UniformsUtils.merge([standardMaterialShader, uniforms]);
-    const shaderMaterialParams = {
-      uniforms: customUniforms,
-      vertexShader: vertexShader1,
-      fragmentShader: fragmentShader1
-    };
-    joshMesh.material = new THREE.ShaderMaterial(shaderMaterialParams);
-
+    // joshMeshArr = Josh.children[0];
     
-
-
-
-    console.log('Josh:  ', Josh);
-    console.log('THREE.ShaderLib:  ', THREE.ShaderLib);
     
-
-
-    
-    Josh.position.set(100, -20, -200);
-    Josh.position.x -= 100;
-    Josh.rotation.y += 185;
-    Josh.scale.set(200, 200, 200);
-    joshArr.push(Josh);
-    scene.add(Josh);
-
-    for(let i = 0; i < TOTAL_JOSH; i++) {
+    for(let i = 0; i < 20; i++) {
       let newJosh = Josh.clone();
-      // newJosh.children[0].material.transparent = true;
-      // newJosh.children[0].material.opacity = 0.8;
-      let newScale = 200 + (i * 2);
-      newJosh.scale.set(newScale, newScale, newScale);
-      joshArr.push(newJosh);
+      let standardMaterialShader = THREE.ShaderLib.standard;
+      let uniforms = {
+        mouseX: {
+          type: 'f',
+          value: 0,
+          needsUpdate: true,
+        },
+        mouseY: {
+          type: 'f',
+          value: 0,
+          needsUpdate: true,
+        },
+        time: {
+          type: 'f',
+          value: 0,
+          needsUpdate: true,
+        }, 
+        opacity: {
+          type: 'f',
+          value: 1.0,
+          needsUpdate: true,
+        },
+        diffuse: {
+          type: 'v3f',
+          value: joshColors[i % joshColors.length]
+        }
+      };
+      let customUniforms = THREE.UniformsUtils.merge([standardMaterialShader, uniforms]);
+      let shaderMaterialParams = {
+        uniforms: customUniforms,
+        vertexShader: vertexShader1,
+        fragmentShader: fragmentShader1,
+        blending: THREE.SubtractiveBlending,
+        transparent: true,
+      };
+      let scaleVal = 200 + (i * 10);
+
+      shaderMaterialParamsArr.push(shaderMaterialParams);
+      newJosh.children[0].material = new THREE.ShaderMaterial(shaderMaterialParams);
+
+      newJosh.position.set(100, -80, -200);
+      newJosh.position.x -= 100;
+      newJosh.rotation.y += 185;
+      newJosh.scale.set(scaleVal, scaleVal, scaleVal);
       scene.add(newJosh);
 
+      joshArr.push(newJosh);
     }
+
+
+    console.log('joshArr:  ', joshArr);
+    console.log('THREE.ShaderLib:  ', THREE.ShaderLib);
+    
+    
+    // Josh.position.set(100, -20, -200);
+    // Josh.position.x -= 100;
+    // Josh.rotation.y += 185;
+    // Josh.scale.set(200, 200, 200);
+    // joshArr.push(Josh);
+    // scene.add(Josh);
+
+    // for(let i = 0; i < TOTAL_JOSH; i++) {
+    //   let newJosh = Josh.clone();
+    //   // newJosh.children[0].material.transparent = true;
+    //   // newJosh.children[0].material.opacity = 0.8;
+    //   let newScale = 200 + (i * 2);
+    //   newJosh.scale.set(newScale, newScale, newScale);
+    //   joshArr.push(newJosh);
+    //   scene.add(newJosh);
+
+    // }
 
     
   }

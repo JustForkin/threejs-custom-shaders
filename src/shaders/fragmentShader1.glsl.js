@@ -94,8 +94,10 @@ void main() {
   vec3 colorA = vec3(0.149,0.141,0.82);
   vec3 colorB = vec3(0.800,0.833,1.0);
   float d = dot(vNormal, normalize(vec3(0.8)));
-  vec3 color = mix(colorA, colorB, d * diffuse.xyz);
-  gl_FragColor = vec4( color, diffuseColor.a );
+  // vec3 color = mix(colorA, colorB, d * diffuse.xyz);
+  vec3 color = mix(vec3(0.0), diffuse.xyz, d * diffuse.xyz);
+
+  gl_FragColor = vec4( color, opacity );
 
   // original
   // gl_FragColor = vec4( outgoingLight, diffuseColor.a );

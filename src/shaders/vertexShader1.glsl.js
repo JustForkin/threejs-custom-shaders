@@ -5,6 +5,9 @@ uniform float mouseX;
 uniform float mouseY;
 uniform float time;
 
+uniform float opacity;
+
+
 varying vec3 vViewPosition;
 
 #ifndef FLAT_SHADED
@@ -70,11 +73,12 @@ void main() {
   
   // project_vertex
   vec3 p = transformed;
-  float d = distance(vec3(0.0, 0.0, 0.0), p);
+  float d = distance(vec3(0.0, 1.0, 0.0), p);
   
   vec3 xTrans = (vNormal + d) * abs(sin(mouseX)) * -1.0;
+  vec3 yTrans = vec3(0.0, 1.0 * abs(sin(mouseY)) * 0.5, 0.0);
 
-  p += xTrans;
+  p += xTrans + yTrans;
 
 
 	vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );
