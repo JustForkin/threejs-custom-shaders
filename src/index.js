@@ -16,6 +16,7 @@ let mouse = {
   x: 0,
   y: 0,
 };
+let ball;
 const container = document.getElementById('container');
 const clock = new THREE.Clock();
 const TOTAL_JOSH = 10;
@@ -56,18 +57,16 @@ document.addEventListener("DOMContentLoaded", () => {
       renderer = new THREE.WebGLRenderer({
         antialias: true,	// to get smoother output
       });
-      renderer.setClearColor( 0xfefefe );
+      renderer.setClearColor( 0xeeeeee );
       renderer.setSize( window.innerWidth, window.innerHeight );
       container.appendChild(renderer.domElement);
+      camera.position.z += -20;
       controls = new OrbitControls( camera, renderer.domElement );
       controls.update();
       controls.enabled = true;
 
-      PromisedLoad.GetGLTF('../static/josh.glb', JoshModelLoaded);
+      await PromisedLoad.GetGLTF('../static/balls.gltf', modelLoaded);
 
-      // addSphere();
-
-      addLights();
       
   }
 
@@ -87,24 +86,29 @@ document.addEventListener("DOMContentLoaded", () => {
     var delta = clock.getDelta();
     var elapsedTime = Date.now() - start;
     time = performance.now() / 1000;
+    let scaleVal = (Math.abs(Math.sin(time)) * 0.5) * 2;
   
 
-    if(Josh) {
-      
-      for(let i = 0; i < joshArr.length; i++) {
-        joshArr[i].children[0].material.uniforms.mouseX.value = Math.abs(mouse.x);
-        joshArr[i].children[0].material.uniforms.mouseY.value = Math.abs(mouse.y);
-        joshArr[i].children[0].material.uniforms.time.value = time;
-  
-        joshArr[i].children[0].material.uniforms.time.needsUpdate = true;
-        joshArr[i].children[0].material.uniforms.mouseX.needsUpdate = true;
-        joshArr[i].children[0].material.uniforms.mouseY.needsUpdate = true;
-        
-        // this makes the whole piece twerk
-        joshArr[i].rotation.x += i * (0.0005);
-      }
-      
+    if(ball) {
+      ball.scale.set(scaleVal)
     }
+
+    // if(Josh) {
+      
+    //   for(let i = 0; i < joshArr.length; i++) {
+    //     joshArr[i].children[0].material.uniforms.mouseX.value = Math.abs(mouse.x);
+    //     joshArr[i].children[0].material.uniforms.mouseY.value = Math.abs(mouse.y);
+    //     joshArr[i].children[0].material.uniforms.time.value = time;
+  
+    //     joshArr[i].children[0].material.uniforms.time.needsUpdate = true;
+    //     joshArr[i].children[0].material.uniforms.mouseX.needsUpdate = true;
+    //     joshArr[i].children[0].material.uniforms.mouseY.needsUpdate = true;
+        
+    //     // this makes the whole piece twerk
+    //     joshArr[i].rotation.x += i * (0.0005);
+    //   }
+      
+    // }
     
 
   }
@@ -119,84 +123,25 @@ document.addEventListener("DOMContentLoaded", () => {
     scene.add(pointLight);
   }
 
-  function JoshModelLoaded(importedObject) {
-    Josh = importedObject.scene.children[0];
-    // joshMeshArr = Josh.children[0];
+  function modelLoaded(importedObject) {
+    let importedScene = importedObject.scene;
+    let ballMesh = importedScene.children[0];
+    let material = new THREE.MeshBasicMaterial();
+    
+    ballMesh.scale.set(100, 100, 100);
+    ball = new THREE.Mesh(ballMesh.geometry, material);
+
+    ball.scale.set(100, 100, 100);
+    
+    scene.add(ball);
     
     
-    for(let i = 0; i < 20; i++) {
-      let newJosh = Josh.clone();
-      let standardMaterialShader = THREE.ShaderLib.standard;
-      let uniforms = {
-        mouseX: {
-          type: 'f',
-          value: 0,
-          needsUpdate: true,
-        },
-        mouseY: {
-          type: 'f',
-          value: 0,
-          needsUpdate: true,
-        },
-        time: {
-          type: 'f',
-          value: 0,
-          needsUpdate: true,
-        }, 
-        opacity: {
-          type: 'f',
-          value: 1.0,
-          needsUpdate: true,
-        },
-        diffuse: {
-          type: 'v3f',
-          value: joshColors[i % joshColors.length]
-        }
-      };
-      let customUniforms = THREE.UniformsUtils.merge([standardMaterialShader, uniforms]);
-      let shaderMaterialParams = {
-        uniforms: customUniforms,
-        vertexShader: vertexShader1,
-        fragmentShader: fragmentShader1,
-        blending: THREE.SubtractiveBlending,
-        transparent: true,
-      };
-      let scaleVal = 200 + (i * 10);
-
-      shaderMaterialParamsArr.push(shaderMaterialParams);
-      newJosh.children[0].material = new THREE.ShaderMaterial(shaderMaterialParams);
-
-      newJosh.position.set(100, -80, -200);
-      newJosh.position.x -= 100;
-      newJosh.rotation.y += 185;
-      newJosh.scale.set(scaleVal, scaleVal, scaleVal);
-      scene.add(newJosh);
-
-      joshArr.push(newJosh);
-    }
-
-
-    console.log('joshArr:  ', joshArr);
-    console.log('THREE.ShaderLib:  ', THREE.ShaderLib);
+    addLights();
     
     
-    // Josh.position.set(100, -20, -200);
-    // Josh.position.x -= 100;
-    // Josh.rotation.y += 185;
-    // Josh.scale.set(200, 200, 200);
-    // joshArr.push(Josh);
-    // scene.add(Josh);
-
-    // for(let i = 0; i < TOTAL_JOSH; i++) {
-    //   let newJosh = Josh.clone();
-    //   // newJosh.children[0].material.transparent = true;
-    //   // newJosh.children[0].material.opacity = 0.8;
-    //   let newScale = 200 + (i * 2);
-    //   newJosh.scale.set(newScale, newScale, newScale);
-    //   joshArr.push(newJosh);
-    //   scene.add(newJosh);
-
-    // }
+    console.log('importedScene:  ', importedScene);
+    console.log('ball:  ', ball);
+    console.log('ballMesh:  ', ballMesh);
 
     
   }
