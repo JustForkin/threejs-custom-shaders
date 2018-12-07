@@ -19,20 +19,9 @@ let mouse = {
 let ball;
 const container = document.getElementById('container');
 const clock = new THREE.Clock();
-const TOTAL_JOSH = 10;
-let joshArr = [];
-let materialsArr = [];
-let joshColors = [
-  new THREE.Vector3(0.86, 0.29, 0.8),
-  new THREE.Vector3(0.45,0.96,0.25),
-  new THREE.Vector3(0.99,0.97,0.32),
-  new THREE.Vector3(0.43,0.98,0.99),
-  new THREE.Vector3(0.59,0.52,0.54),
-  // glColor3f(0.91,0.92,0.91)
-  new THREE.Vector3(0.91,0.92,0.91),
-];
-let shaderMaterialParamsArr = [];
-let joshMeshArr = [];
+const TOTAL_BALLS = 10;
+let ballsArr = [];
+
 
 window.addEventListener('mousemove', onDocumentMouseMove);
 
