@@ -24,6 +24,7 @@
         "custom-event-polyfill": "^1.0.6",
         "normalize.css": "^8.0.0",
         "orbit-controls-es6": "^2.0.0",
+        "quickhull3d": "^2.0.4",
         "three-orbitcontrols": "^2.96.3"
     },
     "devDependencies": {

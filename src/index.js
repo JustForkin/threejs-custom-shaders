@@ -3,12 +3,12 @@ import 'normalize.css/normalize.css';
 import './styles/index.scss';
 import * as THREE from 'three';
 import ScrollCam from './app/ScrollCam.js';
-import PostEffects from './app/PostEffects.js';
-import Hallways from './app/Hallways.js';
 import OrbitControls from 'orbit-controls-es6';
 import PromisedLoad from './app/PromisedLoad';
+import qh from "quickhull3d";
 import vertexShader1 from './shaders/vertexShader1.glsl';
 import fragmentShader1 from './shaders/fragmentShader1.glsl';
+import { getImageData, getPixel } from './vendor/Utils.js';
 
 let renderer, scene, Josh, joshMesh, controls, camera, material, pointLight, geometry, sphere, light = null;
 let time = 0;
@@ -19,8 +19,12 @@ let mouse = {
 let ball;
 const container = document.getElementById('container');
 const clock = new THREE.Clock();
-const TOTAL_BALLS = 10;
-let ballsArr = [];
+let DRAW_RANGE_MAX;
+let polyhedron;
+let points = [];
+let faces;
+let normal;
+
 
 
 window.addEventListener('mousemove', onDocumentMouseMove);
@@ -42,11 +46,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function initialize() {
       scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+      camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 10000 );
       renderer = new THREE.WebGLRenderer({
         antialias: true,	// to get smoother output
       });
-      renderer.setClearColor( 0xf00f00 );
+      renderer.setClearColor( 0xfe0f0e );
       renderer.setSize( window.innerWidth, window.innerHeight );
       container.appendChild(renderer.domElement);
       camera.position.z += 20;
@@ -54,9 +58,14 @@ document.addEventListener("DOMContentLoaded", () => {
       controls.update();
       controls.enabled = true;
 
-      PromisedLoad.GetGLTF('../static/ball.glb', modelLoaded);
+      addLights();
 
-      
+      // polyhedron = createPolyhedron();
+      // scene.add(polyhedron);
+
+      polyhedron = createMeshFromTexture();
+      scene.add(polyhedron);
+
   }
 
   function animate() {
@@ -68,75 +77,202 @@ document.addEventListener("DOMContentLoaded", () => {
     renderer.render(scene, camera);
   }
 
-  var start = Date.now();
-
   function update() {
     // let all of our scriptz run their respective update loop
     var delta = clock.getDelta();
-    var elapsedTime = Date.now() - start;
     time = performance.now() / 1000;
-    let scaleVal = (Math.abs(Math.sin(time)) * 0.5) * 2;
-  
-
-    // if(ball) {
-    //   ball.scale.set(scaleVal)
-    // }
-
-    // if(Josh) {
-      
-    //   for(let i = 0; i < joshArr.length; i++) {
-    //     joshArr[i].children[0].material.uniforms.mouseX.value = Math.abs(mouse.x);
-    //     joshArr[i].children[0].material.uniforms.mouseY.value = Math.abs(mouse.y);
-    //     joshArr[i].children[0].material.uniforms.time.value = time;
-  
-    //     joshArr[i].children[0].material.uniforms.time.needsUpdate = true;
-    //     joshArr[i].children[0].material.uniforms.mouseX.needsUpdate = true;
-    //     joshArr[i].children[0].material.uniforms.mouseY.needsUpdate = true;
-        
-    //     // this makes the whole piece twerk
-    //     joshArr[i].rotation.x += i * (0.0005);
-    //   }
-      
-    // }
-    
 
   }
 
 
   function addLights() {
-    light = new THREE.AmbientLight( 0x404040 ); // soft white light
+
+    light = new THREE.AmbientLight( 0x404040 ); 
     scene.add( light );
 
     pointLight = new THREE.PointLight(0xffffff);
     pointLight.position.z = 0;
+    pointLight.position.y = 10;
     scene.add(pointLight);
   }
 
-  function modelLoaded(importedObject) {
-    let importedScene = importedObject.scene;
-    let ballMesh = importedScene.children[0];
-    let material = new THREE.MeshBasicMaterial({ 
-      color: 0x2194ce,
-      wireframe: true
+  function createPolyhedron() {
+    let N_POINTS = 100;
+    let LIMIT = 100;
+    let points = [];
+    let faces;
+    let geometry;
+    let material;
+    let normal;
+  
+    // generate xyz coords
+    for (let i = 0; i < N_POINTS; i++) {
+      points.push(pointGenerator(LIMIT));
+    }
+  
+    // quickhull: returns an array of 3 element arrays, each subarray has
+    // the indices of 3 points which form a face those normal points
+    // outside the polyhedron
+    faces = qh(points);
+  
+    geometry = new THREE.Geometry();
+  
+    // add verts to geo
+    for (let i = 0; i < points.length; i++) {
+      geometry.vertices.push(new THREE.Vector3().fromArray(points[i]));
+    }
+  
+    // create faces
+    for (let i = 0; i < faces.length; i++) {
+      // create position vectors for the three verts of the face
+      let a = new THREE.Vector3().fromArray(points[faces[i][0]]);
+      let b = new THREE.Vector3().fromArray(points[faces[i][1]]);
+      let c = new THREE.Vector3().fromArray(points[faces[i][2]]);
+  
+      // set normal to cross product of two vectors that represent the face
+      normal = new THREE.Vector3()
+        .crossVectors(
+          new THREE.Vector3().subVectors(b, a),
+          new THREE.Vector3().subVectors(c, a)
+        )
+        .normalize();
+  
+      // add faces to geo
+      geometry.faces.push(
+        new THREE.Face3(faces[i][0], faces[i][1], faces[i][2], normal)
+      );
+    }
+  
+    // create material
+    material = new THREE.MeshNormalMaterial({
+      wireframe: false
     });
-    
-    ball = new THREE.Mesh(ballMesh.geometry, material);
+  
+    // make bufferGeometry from the geometry so we can load it up into memory
+    let bufferGeo = new THREE.BufferGeometry().fromGeometry(geometry);
+    console.log("bufferGeo:  ", bufferGeo);
+    console.log("geometry:  ", geometry);
+  
+    // create Object3d
+    polyhedron = new THREE.Mesh(bufferGeo, material);
+    console.log("polyhedron:  ", polyhedron);
+    DRAW_RANGE_MAX = bufferGeo.attributes.position.count;
 
-    // ball.scale.set(100, 100, 100);
-    
-    scene.add(ball);
-    camera.lookAt(ball.position);
-    
-    
-    addLights();
-    
-    
-    console.log('importedScene:  ', importedScene);
-    console.log('ball:  ', ball);
-    console.log('ballMesh:  ', ballMesh);
-    console.log('scene:  ', scene);
+    return polyhedron;
+  }
 
-    
+  function pointGenerator(LIMIT) {
+    let x = -LIMIT + 2 * Math.random() * LIMIT * 0.5;
+    let y = -LIMIT + 2 * Math.random() * LIMIT * 0.5;
+    let z = -LIMIT + 2 * Math.random() * LIMIT * 0.5;
+    return [x, y, z];
+  }
+
+  function texturePointGenerator(x, y, z, scalar) {
+
+    return [x * scalar, y * scalar, z * scalar];
+  }
+
+  // from the man himself: https://github.com/mrdoob/three.js/issues/758
+  function getImageData(image) {
+    var canvas = document.getElementById("image-data-canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    var context = canvas.getContext("2d");
+    context.drawImage(image, 0, 0);
+
+    image.crossOrigin = "Anonymous";
+    image.setAttribute("crossOrigin", "");
+    return context.getImageData(0, 0, image.width, image.height);
+  }
+
+  function getPixel(imagedata, x, y) {
+    var position = (x + imagedata.width * y) * 4,
+      data = imagedata.data;
+
+    return {
+      r: data[position],
+      g: data[position + 1],
+      b: data[position + 2],
+      a: data[position + 3]
+    };
+  }
+
+  function createMeshFromTexture() {
+    let image = document.getElementById("texture");
+    let imageData = getImageData(image);
+
+    let granularity = 16;
+    let scalar = 20;
+
+    console.log('imageData.width:  ', imageData.width);
+    console.log('imageData.height:  ', imageData.height);
+
+    for (let i = 0; i < imageData.width; i += granularity) {
+      for (let j = 0; j < imageData.height; j += granularity) {
+        let colorAtPixel = getPixel(imageData, i, j);
+
+        // if the color is not white, place a point there
+        if (
+          colorAtPixel.r !== 255 &&
+          colorAtPixel.g !== 255 &&
+          colorAtPixel.b !== 255
+        ) {
+          points.push(texturePointGenerator(i, colorAtPixel.r * 0.5, j, scalar));
+        }
+      }
+    }
+
+    console.log('points:   ', points);
+    faces = qh(points);
+
+    geometry = new THREE.Geometry();
+
+    // add verts to geo
+    for(let i = 0; i < points.length; i++) {
+      geometry.vertices.push(new THREE.Vector3().fromArray(points[i]));
+    }
+
+    // create faces
+    for(let i = 0; i < faces.length; i++) {
+      // create position vectors for the three verts of the face
+      let a = new THREE.Vector3().fromArray(points[faces[i][0]]);
+      let b = new THREE.Vector3().fromArray(points[faces[i][1]]);
+      let c = new THREE.Vector3().fromArray(points[faces[i][2]]);
+
+      // set normal to cross product of two vectors that represent the face
+      normal = new THREE.Vector3()
+        .crossVectors(
+          new THREE.Vector3().subVectors(b, a),
+          new THREE.Vector3().subVectors(c, a)
+        )
+        .normalize();
+  
+      // add faces to geo
+      geometry.faces.push(
+        new THREE.Face3(faces[i][0], faces[i][1], faces[i][2], normal)
+      );
+
+    }
+
+
+    // create material
+    material = new THREE.MeshNormalMaterial({
+      wireframe: false
+    });
+  
+    // make bufferGeometry from the geometry so we can load it up into memory
+    let bufferGeo = new THREE.BufferGeometry().fromGeometry(geometry);
+    console.log("bufferGeo:  ", bufferGeo);
+    console.log("geometry:  ", geometry);
+  
+    // create Object3d
+    polyhedron = new THREE.Mesh(bufferGeo, material);
+    console.log("polyhedron:  ", polyhedron);
+    DRAW_RANGE_MAX = bufferGeo.attributes.position.count;
+
+    return polyhedron;
   }
 
 });
