@@ -24,6 +24,8 @@ let polyhedron;
 let points = [];
 let faces;
 let normal;
+let undulate = true;
+let pixelCubes = [];
 
 
 
@@ -50,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderer = new THREE.WebGLRenderer({
         antialias: true,	// to get smoother output
       });
-      renderer.setClearColor( 0xfe0f0e );
+      renderer.setClearColor( 0xffffff );
       renderer.setSize( window.innerWidth, window.innerHeight );
       container.appendChild(renderer.domElement);
       camera.position.z += 20;
@@ -63,8 +65,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // polyhedron = createPolyhedron();
       // scene.add(polyhedron);
 
-      polyhedron = createMeshFromTexture();
-      scene.add(polyhedron);
+      createMeshFromTexture(scene);
+      
 
   }
 
@@ -82,6 +84,12 @@ document.addEventListener("DOMContentLoaded", () => {
     var delta = clock.getDelta();
     time = performance.now() / 1000;
 
+    if(undulate) {
+      for(let i = 0; i < pixelCubes.length; i++) {
+        pixelCubes[i].position.y += Math.sin(time + (i * 0.005)) * (0.2);
+      }
+
+    }
   }
 
 
@@ -170,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function texturePointGenerator(x, y, z, scalar) {
 
-    return [x * scalar, y * scalar, z * scalar];
+    return [x * scalar, y * (scalar * 0.05), z * scalar];
   }
 
   // from the man himself: https://github.com/mrdoob/three.js/issues/758
@@ -199,12 +207,12 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  function createMeshFromTexture() {
+  function createMeshFromTexture(scene) {
     let image = document.getElementById("texture");
     let imageData = getImageData(image);
 
-    let granularity = 16;
-    let scalar = 20;
+    let granularity = 4;
+    let scalar = 4;
 
     console.log('imageData.width:  ', imageData.width);
     console.log('imageData.height:  ', imageData.height);
@@ -219,60 +227,68 @@ document.addEventListener("DOMContentLoaded", () => {
           colorAtPixel.g !== 255 &&
           colorAtPixel.b !== 255
         ) {
-          points.push(texturePointGenerator(i, colorAtPixel.r * 0.5, j, scalar));
+          // points.push(texturePointGenerator(i, colorAtPixel.r * 0.5, j, scalar));
+          let pointsArr = texturePointGenerator(i, colorAtPixel.r * 0.5, j, scalar);
+
+          var geometry = new THREE.BoxGeometry( 10, 10, 10 );
+          var material = new THREE.MeshBasicMaterial( { color: new THREE.Color(colorAtPixel.r / 255, colorAtPixel.g / 255, colorAtPixel.b / 255) } );
+          var cube = new THREE.Mesh( geometry, material );
+          cube.position.set().fromArray(pointsArr);
+          pixelCubes.push(cube);
+          scene.add( cube );
         }
       }
     }
 
     console.log('points:   ', points);
-    faces = qh(points);
+    // faces = qh(points);
 
-    geometry = new THREE.Geometry();
+    // geometry = new THREE.Geometry();
 
     // add verts to geo
-    for(let i = 0; i < points.length; i++) {
-      geometry.vertices.push(new THREE.Vector3().fromArray(points[i]));
-    }
+    // for(let i = 0; i < points.length; i++) {
+    //   geometry.vertices.push(new THREE.Vector3().fromArray(points[i]));
+    // }
 
-    // create faces
-    for(let i = 0; i < faces.length; i++) {
-      // create position vectors for the three verts of the face
-      let a = new THREE.Vector3().fromArray(points[faces[i][0]]);
-      let b = new THREE.Vector3().fromArray(points[faces[i][1]]);
-      let c = new THREE.Vector3().fromArray(points[faces[i][2]]);
+    // // create faces
+    // for(let i = 0; i < faces.length; i++) {
+    //   // create position vectors for the three verts of the face
+    //   let a = new THREE.Vector3().fromArray(points[faces[i][0]]);
+    //   let b = new THREE.Vector3().fromArray(points[faces[i][1]]);
+    //   let c = new THREE.Vector3().fromArray(points[faces[i][2]]);
 
-      // set normal to cross product of two vectors that represent the face
-      normal = new THREE.Vector3()
-        .crossVectors(
-          new THREE.Vector3().subVectors(b, a),
-          new THREE.Vector3().subVectors(c, a)
-        )
-        .normalize();
+    //   // set normal to cross product of two vectors that represent the face
+    //   normal = new THREE.Vector3()
+    //     .crossVectors(
+    //       new THREE.Vector3().subVectors(b, a),
+    //       new THREE.Vector3().subVectors(c, a)
+    //     )
+    //     .normalize();
   
-      // add faces to geo
-      geometry.faces.push(
-        new THREE.Face3(faces[i][0], faces[i][1], faces[i][2], normal)
-      );
+    //   // add faces to geo
+    //   geometry.faces.push(
+    //     new THREE.Face3(faces[i][0], faces[i][1], faces[i][2], normal)
+    //   );
 
-    }
+    // }
 
 
-    // create material
-    material = new THREE.MeshNormalMaterial({
-      wireframe: false
-    });
+    // // create material
+    // material = new THREE.MeshNormalMaterial({
+    //   wireframe: false
+    // });
   
-    // make bufferGeometry from the geometry so we can load it up into memory
-    let bufferGeo = new THREE.BufferGeometry().fromGeometry(geometry);
-    console.log("bufferGeo:  ", bufferGeo);
-    console.log("geometry:  ", geometry);
+    // // make bufferGeometry from the geometry so we can load it up into memory
+    // let bufferGeo = new THREE.BufferGeometry().fromGeometry(geometry);
+    // console.log("bufferGeo:  ", bufferGeo);
+    // console.log("geometry:  ", geometry);
   
-    // create Object3d
-    polyhedron = new THREE.Mesh(bufferGeo, material);
-    console.log("polyhedron:  ", polyhedron);
-    DRAW_RANGE_MAX = bufferGeo.attributes.position.count;
+    // // create Object3d
+    // polyhedron = new THREE.Mesh(bufferGeo, material);
+    // console.log("polyhedron:  ", polyhedron);
+    // DRAW_RANGE_MAX = bufferGeo.attributes.position.count;
 
-    return polyhedron;
+    // return polyhedron;
   }
 
 });
