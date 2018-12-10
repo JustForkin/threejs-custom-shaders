@@ -24,7 +24,7 @@ let polyhedron;
 let points = [];
 let faces;
 let normal;
-let undulate = true;
+let undulate = false;
 let pixelCubes = [];
 
 
