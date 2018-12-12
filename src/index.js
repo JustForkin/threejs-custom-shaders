@@ -10,25 +10,20 @@ import vertexShader1 from './shaders/vertexShader1.glsl';
 import fragmentShader1 from './shaders/fragmentShader1.glsl';
 import { getImageData, getPixel, radians, distance, map, onDocumentMouseMove } from './vendor/Utils.js';
 
-let renderer, scene, Josh, joshMesh, controls, camera, material, pointLight, geometry, sphere, light = null;
+let renderer, scene,controls, camera, pointLight, light = null;
 let time = 0;
 let mouse = {
   x: 0,
   y: 0,
 };
-let ball;
 const container = document.getElementById('container');
 const clock = new THREE.Clock();
-let DRAW_RANGE_MAX;
+let DRAW_RANGE_MAX; 
 let polyhedron;
-let points = [];
-let faces;
-let normal;
 let undulate = false;
 let pixelCubes = [];
 let floor;
 let raycaster;
-let repulsion = 1;
 
 
 
