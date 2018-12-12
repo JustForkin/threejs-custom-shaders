@@ -18,7 +18,6 @@ let mouse = {
 };
 const container = document.getElementById('container');
 const clock = new THREE.Clock();
-let DRAW_RANGE_MAX; 
 let polyhedron;
 let undulate = false;
 let pixelCubes = [];
