@@ -8,8 +8,8 @@ import Hallways from './app/Hallways.js';
 import {TweenMax, TimelineLite} from "gsap/TweenMax";
 import OrbitControls from 'orbit-controls-es6';
 import PromisedLoad from './app/PromisedLoad';
-import customVertexShader from './shaders/vertexShader1.glsl';
-import customFragmentShader from './shaders/fragmentShader1.glsl';
+import vertexShader1 from './shaders/vertexShader1.glsl';
+import fragmentShader1 from './shaders/fragmentShader1.glsl';
 
 let mouse = new THREE.Vector2();
 
@@ -71,8 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const customUniforms = THREE.UniformsUtils.merge([pointsMaterialShader, uniforms]);
       const shaderMaterialParams = {
         uniforms: customUniforms,
-        vertexShader: customVertexShader,
-        fragmentShader: customFragmentShader//pointsMaterialShader.fragmentShader,
+        vertexShader: vertexShader1,
+        fragmentShader: fragmentShader1//pointsMaterialShader.fragmentShader,
       };
       const pointMat = new THREE.ShaderMaterial(shaderMaterialParams);
       const dp = new THREE.Points(dougMesh.geometry, pointMat);
