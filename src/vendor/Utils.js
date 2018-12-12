@@ -25,5 +25,20 @@ export function getPixel(imagedata, x, y) {
   };
 }
 
+export function radians(degrees) {
+  return degrees * Math.PI / 180;
+}
 
+export function distance(x1, y1, x2, y2) {
+  return Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));
+}
 
+export function map(value, start1, stop1, start2, stop2) {
+  return (value - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+}
+
+export function onDocumentMouseMove(mouse, event) {
+  event.preventDefault();
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+}
