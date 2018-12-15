@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(animate);
     // updateDougPoints();
 
-    time = Date.now() - startTime;
+    time = performance.now() / 1000;
 
     cube.material.uniforms.time.value = time;
 
