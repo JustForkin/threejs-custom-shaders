@@ -1,7 +1,6 @@
 export default `
 uniform float size;
-uniform float scale;
-uniform float timeDelta;
+uniform float time;
 
 //
 // <common>
@@ -187,17 +186,16 @@ void main() {
   //
   // <project_vertex>
   //
-  vec3 p = transformed;
-  // float relTimeX = timeDelta * p.x;
-  float money = 0.0005;
-  float particleAmp = 30.0;
-  p.y += sin(timeDelta * money * p.x) * particleAmp;
+	vec3 p = transformed;
+	
+	p *= vec3(sin(time * 0.05) * 1.0);
 
   vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );
 
   gl_Position = projectionMatrix * mvPosition;
 
-	gl_PointSize = size;
+	
+	// gl_PointSize = size;
 
 	#ifdef USE_SIZEATTENUATION
 
@@ -206,6 +204,8 @@ void main() {
 		if ( isPerspective ) gl_PointSize *= ( scale / - mvPosition.z );
 
 	#endif
+
+
 
 	#include <logdepthbuf_vertex>
 	#include <clipping_planes_vertex>
