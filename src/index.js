@@ -73,9 +73,17 @@ document.addEventListener('DOMContentLoaded', () => {
         type: 'f',
         value: 0
       },
-      size: {
+      materialColor: {
+        type: 'v3f',
+        value: new THREE.Vector3(1.0, 0.0, 0.0)
+      },
+      ambientLightColor: {
+        type: 'v3f',
+        value: new THREE.Vector3(0.0, 0.0, 1.0)
+      },
+      ambientLightStrength: {
         type: 'f',
-        value: 300
+        value: 0.1
       }
     };
     const shaderMaterialParams = {
@@ -105,6 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
     time = performance.now() / 1000;
 
     cube.material.uniforms.time.value = time;
+
+    cube.rotation.x += 0.005;
+    cube.rotation.y += 0.003;
 
     render();
   }

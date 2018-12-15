@@ -1,6 +1,9 @@
 export default `
-uniform float size;
 uniform float time;
+uniform vec3 materialColor;
+uniform vec3 ambientLightColor;
+uniform float ambientLightStrength;
+
 
 //
 // <common>
@@ -188,7 +191,7 @@ void main() {
   //
 	vec3 p = transformed;
 	
-	p *= vec3(sin(time) * 1.0);
+	// p *= vec3(sin(time) * 1.0);
 
   vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );
 

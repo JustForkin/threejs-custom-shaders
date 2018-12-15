@@ -1,8 +1,12 @@
 export default `
 
-uniform float timeDelta;
+uniform float time;
+uniform vec3 materialColor;
+uniform vec3 ambientLightColor;
+uniform float ambientLightStrength;
 
 void main() {
-  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+  vec3 c = mix(materialColor, ambientLightColor, ambientLightStrength);
+  gl_FragColor = vec4(c, 1.0);
 }
 `;
