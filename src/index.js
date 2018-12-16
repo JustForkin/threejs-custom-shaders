@@ -9,6 +9,7 @@ import OrbitControls from 'orbit-controls-es6';
 import PromisedLoad from './app/PromisedLoad';
 import vertexShader1 from './shaders/vertexShader1.glsl';
 import fragmentShader1 from './shaders/fragmentShader1.glsl';
+import * as dat from 'dat.gui';
 
 let mouse = new THREE.Vector2();
 
@@ -25,6 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let controls;
   let startTime, time;
   let cube;
+  let rotSpeed = new THREE.Vector3(0.005, 0.003, 0.0);
+  let axesHelper;
+  let uniforms;
 
   initialize();
 
@@ -44,6 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
       1,
       10000
     );
+
+    axesHelper = new THREE.AxesHelper(5);
+    scene.add(axesHelper);
 
     addCube();
 
@@ -68,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function addCube() {
     let geometry = new THREE.BoxGeometry(1, 1, 1);
-    const uniforms = {
+    uniforms = {
       time: {
         type: 'f',
         value: 0
@@ -83,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       ambientLightStrength: {
         type: 'f',
-        value: 0.1
+        value: 0.3
       }
     };
     const shaderMaterialParams = {
@@ -108,30 +115,135 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function animate() {
     requestAnimationFrame(animate);
-    // updateDougPoints();
 
     time = performance.now() / 1000;
 
     cube.material.uniforms.time.value = time;
+    // cube.material.uniforms.materialColor = uniforms.materialColor;
+    // cube.material.uniforms.ambientLightColor = uniforms.ambientLightColor;
+    // cube.material.uniforms.ambientLightStrength = uniforms.ambientLightStrength;
 
-    cube.rotation.x += 0.005;
-    cube.rotation.y += 0.003;
+    cube.rotation.x += rotSpeed.x;
+    cube.rotation.y += rotSpeed.y;
 
     render();
   }
 
   function render() {
-    var delta = clock.getDelta();
-    let angle = (((delta * 1000) / 10) * Math.PI) / 2 - 1.5;
-
     renderer.render(scene, camera);
 
     controls.update();
   }
+
+  /*********************************************** */
+  // DAT.GUI Related Stuff
+  /*********************************************** */
+  // Options to be added to the GUI
+
+  /**
+   * 
+   * 
+var params = {
+    color: 0xff00ff
+};
+
+var gui = new dat.GUI();
+
+var folder = gui.addFolder( 'MATERIAL' );
+
+folder.addColor( params, 'color' )
+      .onChange( function() { 
+        cube.material.color.set( params.color ); 
+      } );
+
+folder.open();
+   */
+
+  var options = {
+    velx: 0,
+    vely: 0,
+    rotSpeed: rotSpeed,
+    materialColor: uniforms.materialColor.value.toArray(),
+    ambientLightColor: uniforms.ambientLightColor.value.toArray(),
+    ambientLightStrength: uniforms.ambientLightStrength.value,
+    stop: function() {
+      this.rotSpeed.x = 0;
+      this.rotSpeed.y = 0;
+    },
+    reset: function() {
+      this.rotSpeed.x = 0.1;
+      this.rotSpeed.y = 0.1;
+      camera.position.z = 75;
+      camera.position.x = 0;
+      camera.position.y = 0;
+      cube.scale.x = 1;
+      cube.scale.y = 1;
+      cube.scale.z = 1;
+      cube.material.wireframe = true;
+    }
+  };
+
+  let gui = new dat.GUI();
+
+  let rotation = gui.addFolder('Rotation');
+  rotation
+    .add(options.rotSpeed, 'x', -0.02, 0.02)
+    .name('X')
+    .listen();
+  rotation
+    .add(options.rotSpeed, 'y', -0.02, 0.02)
+    .name('Y')
+    .listen();
+  rotation.open();
+
+  let uniformsGUI = gui.addFolder('Uniforms');
+  uniformsGUI
+    .addColor(options, 'materialColor')
+    .onChange(function(value) {
+      // console.log('value:  ', value);
+      // cube.material.uniformsNeedUpdate = true;
+      cube.material.uniforms.materialColor.value.x = value[0] / 255;
+      cube.material.uniforms.materialColor.value.y = value[1] / 255;
+      cube.material.uniforms.materialColor.value.z = value[2] / 255;
+    })
+    .name('materialColor')
+    .listen();
+  uniformsGUI.addColor(options, 'ambientLightColor').onChange(function(value) {
+    cube.material.uniforms.ambientLightColor.value.x = value[0] / 255;
+    cube.material.uniforms.ambientLightColor.value.y = value[1] / 255;
+    cube.material.uniforms.ambientLightColor.value.z = value[2] / 255;
+  });
+  uniformsGUI
+    .add(options, 'ambientLightStrength', 0.0, 1.0)
+    .onChange(function(value) {
+      cube.material.uniforms.ambientLightStrength.value = value;
+    });
+  uniformsGUI.open();
+
+  let box = gui.addFolder('Cube');
+  box
+    .add(cube.scale, 'x', 0, 3)
+    .name('Width')
+    .listen();
+  box
+    .add(cube.scale, 'y', 0, 3)
+    .name('Height')
+    .listen();
+  box
+    .add(cube.scale, 'z', 0, 3)
+    .name('Length')
+    .listen();
+  box.add(cube.material, 'wireframe').listen();
+  box.open();
+
+  gui.add(options, 'stop');
+  gui.add(options, 'reset');
+
+  /*********************************************** */
 });
+
 function onDocumentMouseMove(event) {
   event.preventDefault();
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  // console.log('mouse:  ', mouse);
 }
