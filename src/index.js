@@ -200,8 +200,6 @@ folder.open();
   uniformsGUI
     .addColor(options, 'materialColor')
     .onChange(function(value) {
-      // console.log('value:  ', value);
-      // cube.material.uniformsNeedUpdate = true;
       cube.material.uniforms.materialColor.value.x = value[0] / 255;
       cube.material.uniforms.materialColor.value.y = value[1] / 255;
       cube.material.uniforms.materialColor.value.z = value[2] / 255;
