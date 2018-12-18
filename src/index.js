@@ -10,6 +10,7 @@ import PromisedLoad from './app/PromisedLoad';
 import vertexShader1 from './shaders/vertexShader1.glsl';
 import fragmentShader1 from './shaders/fragmentShader1.glsl';
 import * as dat from 'dat.gui';
+// import { setupGUI } from './app/GUI';
 
 let mouse = new THREE.Vector2();
 
@@ -20,17 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
     camera,
     scene = null;
   const container = document.getElementById('container');
-  const clock = new THREE.Clock();
-  let r = 10;
-  let pointLight;
   let controls;
   let startTime, time;
   let cube;
   let rotSpeed = new THREE.Vector3(0.005, 0.003, 0.0);
   let axesHelper;
   let uniforms;
+  let customPointLight;
 
   initialize();
+
+  // console.log('rotSpeed:  ', rotSpeed);
+  // setupGUI();
 
   async function initialize() {
     scene = new THREE.Scene();
@@ -54,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addCube();
 
+    addCustomPointLight();
+
     controls = new OrbitControls(camera);
     scene.add(camera);
     camera.position.z = 5;
@@ -62,13 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // and then just look at it!
     camera.lookAt(scene.position);
     controls.update();
-
-    // add some lightz
-    // var ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
-    // scene.add( ambientLight );
-
-    // pointLight = new THREE.PointLight( 0x42AFEF, THREE.Vector3(0, 0, 0) );
-    // scene.add( pointLight );
 
     animate();
   }
@@ -91,6 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
       ambientLightStrength: {
         type: 'f',
         value: 0.3
+      },
+      customPointLightPos: {
+        type: 'v3f',
+        value: new THREE.Vector3(2.0, 2.0, 2.0)
       }
     };
     const shaderMaterialParams = {
@@ -102,6 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cube = new THREE.Mesh(geometry, customMaterial);
     scene.add(cube);
+  }
+
+  function addCustomPointLight() {
+    let geo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+    let mat = new THREE.MeshBasicMaterial();
+    customPointLight = new THREE.Mesh(geo, mat);
+    customPointLight.position.set(2, 2, 2);
+    scene.add(customPointLight);
   }
 
   function normalize(x, fromMin, fromMax) {
@@ -135,56 +144,24 @@ document.addEventListener('DOMContentLoaded', () => {
     controls.update();
   }
 
-  /*********************************************** */
-  // DAT.GUI Related Stuff
-  /*********************************************** */
-  // Options to be added to the GUI
+  setupGUI(rotSpeed, uniforms, cube, customPointLight);
+});
 
-  /**
-   * 
-   * 
-var params = {
-    color: 0xff00ff
-};
-
-var gui = new dat.GUI();
-
-var folder = gui.addFolder( 'MATERIAL' );
-
-folder.addColor( params, 'color' )
-      .onChange( function() { 
-        cube.material.color.set( params.color ); 
-      } );
-
-folder.open();
-   */
-
-  var options = {
+function setupGUI(rotSpeed, uniforms, cube, customPointLight) {
+  let options = {
     velx: 0,
     vely: 0,
     rotSpeed: rotSpeed,
     materialColor: uniforms.materialColor.value.toArray(),
     ambientLightColor: uniforms.ambientLightColor.value.toArray(),
     ambientLightStrength: uniforms.ambientLightStrength.value,
-    stop: function() {
-      this.rotSpeed.x = 0;
-      this.rotSpeed.y = 0;
-    },
-    reset: function() {
-      this.rotSpeed.x = 0.1;
-      this.rotSpeed.y = 0.1;
-      camera.position.z = 75;
-      camera.position.x = 0;
-      camera.position.y = 0;
-      cube.scale.x = 1;
-      cube.scale.y = 1;
-      cube.scale.z = 1;
-      cube.material.wireframe = true;
+    customPointLightPos: {
+      x: 2,
+      y: 2,
+      z: 2
     }
   };
-
   let gui = new dat.GUI();
-
   let rotation = gui.addFolder('Rotation');
   rotation
     .add(options.rotSpeed, 'x', -0.02, 0.02)
@@ -195,7 +172,6 @@ folder.open();
     .name('Y')
     .listen();
   rotation.open();
-
   let uniformsGUI = gui.addFolder('Uniforms');
   uniformsGUI
     .addColor(options, 'materialColor')
@@ -218,6 +194,24 @@ folder.open();
     });
   uniformsGUI.open();
 
+  let customPointLightGUI = gui.addFolder('Custom Point Light');
+  customPointLightGUI
+    .add(customPointLight.position, 'x', -5, 5)
+    .onChange(function(value) {
+      cube.material.uniforms.customPointLightPos.value.x;
+    });
+  customPointLightGUI
+    .add(customPointLight.position, 'y', -5, 5)
+    .onChange(function(value) {
+      cube.material.uniforms.customPointLightPos.value.y;
+    });
+  customPointLightGUI
+    .add(customPointLight.position, 'z', -5, 5)
+    .onChange(function(value) {
+      cube.material.uniforms.customPointLightPos.value.z;
+    });
+  customPointLightGUI.open();
+
   let box = gui.addFolder('Cube');
   box
     .add(cube.scale, 'x', 0, 3)
@@ -233,12 +227,7 @@ folder.open();
     .listen();
   box.add(cube.material, 'wireframe').listen();
   box.open();
-
-  gui.add(options, 'stop');
-  gui.add(options, 'reset');
-
-  /*********************************************** */
-});
+}
 
 function onDocumentMouseMove(event) {
   event.preventDefault();

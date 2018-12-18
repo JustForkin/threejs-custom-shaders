@@ -1,3 +1,18 @@
+var params = {
+  color: 0xff00ff
+};
+var gui = new dat.GUI();
+
+var folder = gui.addFolder( 'MATERIAL' );
+
+folder.addColor( params, 'color' )
+      .onChange( function() { 
+        cube.material.color.set( params.color ); 
+      } );
+
+folder.open();
+
+
 
     load in that main object
     let object = await PromisedLoad.GetGLTF(modelUrl);
