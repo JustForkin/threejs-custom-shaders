@@ -1,13 +1,10 @@
 import 'normalize.css/normalize.css';
 import './styles/index.scss';
 import * as THREE from 'three';
-import ScrollCam from './app/ScrollCam.js';
-import PostEffects from './app/PostEffects.js';
-import Hallways from './app/Hallways.js';
 import { TweenMax, TimelineLite } from 'gsap/TweenMax';
 import OrbitControls from 'orbit-controls-es6';
-import PromisedLoad from './app/PromisedLoad';
 import vertexShader1 from './shaders/vertexShader1.glsl';
+import vertexShader2 from './shaders/vertexShader2.glsl';
 import fragmentShader1 from './shaders/fragmentShader1.glsl';
 import * as dat from 'dat.gui';
 // import { setupGUI } from './app/GUI';
@@ -71,7 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function addCube() {
-    let geometry = new THREE.BoxGeometry(1, 1, 1);
+    /*
+      var geometry = new THREE.SphereGeometry( 5, 32, 32 );
+      var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+      var sphere = new THREE.Mesh( geometry, material );
+      scene.add( sphere );
+    */
+    let geometry = new THREE.SphereGeometry(1, 32, 32);
+    // let geometry = new THREE.BoxGeometry(1, 1, 1, 16, 16, 16);
     uniforms = {
       time: {
         type: 'f',
@@ -96,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const shaderMaterialParams = {
       uniforms: uniforms,
-      vertexShader: vertexShader1,
+      vertexShader: vertexShader2,
       fragmentShader: fragmentShader1
     };
     const customMaterial = new THREE.ShaderMaterial(shaderMaterialParams);
@@ -132,8 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // cube.material.uniforms.ambientLightColor = uniforms.ambientLightColor;
     // cube.material.uniforms.ambientLightStrength = uniforms.ambientLightStrength;
 
-    cube.rotation.x += rotSpeed.x;
-    cube.rotation.y += rotSpeed.y;
+    // cube.rotation.x += rotSpeed.x;
+    // cube.rotation.y += rotSpeed.y;
 
     render();
   }
@@ -198,17 +202,17 @@ function setupGUI(rotSpeed, uniforms, cube, customPointLight) {
   customPointLightGUI
     .add(customPointLight.position, 'x', -5, 5)
     .onChange(function(value) {
-      cube.material.uniforms.customPointLightPos.value.x;
+      cube.material.uniforms.customPointLightPos.value.x = value;
     });
   customPointLightGUI
     .add(customPointLight.position, 'y', -5, 5)
     .onChange(function(value) {
-      cube.material.uniforms.customPointLightPos.value.y;
+      cube.material.uniforms.customPointLightPos.value.y = value;
     });
   customPointLightGUI
     .add(customPointLight.position, 'z', -5, 5)
     .onChange(function(value) {
-      cube.material.uniforms.customPointLightPos.value.z;
+      cube.material.uniforms.customPointLightPos.value.z = value;
     });
   customPointLightGUI.open();
 
