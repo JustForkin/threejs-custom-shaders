@@ -74,8 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
       var sphere = new THREE.Mesh( geometry, material );
       scene.add( sphere );
     */
-    let geometry = new THREE.SphereGeometry(1, 32, 32);
-    // let geometry = new THREE.BoxGeometry(1, 1, 1, 16, 16, 16);
+    // let geometry = new THREE.SphereGeometry(1, 32, 32);
+    let geometry = new THREE.BoxGeometry(1, 1, 1, 16, 16, 16);
     uniforms = {
       time: {
         type: 'f',
@@ -136,8 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // cube.material.uniforms.ambientLightColor = uniforms.ambientLightColor;
     // cube.material.uniforms.ambientLightStrength = uniforms.ambientLightStrength;
 
-    // cube.rotation.x += rotSpeed.x;
-    // cube.rotation.y += rotSpeed.y;
+    cube.rotation.x += rotSpeed.x;
+    cube.rotation.y += rotSpeed.y;
 
     render();
   }
@@ -228,6 +228,18 @@ function setupGUI(rotSpeed, uniforms, cube, customPointLight) {
   box
     .add(cube.scale, 'z', 0, 3)
     .name('Length')
+    .listen();
+  box
+    .add(cube.position, 'x', -2, 2)
+    .name('X')
+    .listen();
+  box
+    .add(cube.position, 'y', -2, 2)
+    .name('Y')
+    .listen();
+  box
+    .add(cube.position, 'z', -2, 2)
+    .name('Z')
     .listen();
   box.add(cube.material, 'wireframe').listen();
   box.open();

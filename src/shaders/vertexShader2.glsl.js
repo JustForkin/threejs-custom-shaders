@@ -10,10 +10,11 @@ varying vec3 vNormal;
 varying vec3 lightVec;
 
 void main() {
-  // the line below makes the normal rotate along with the cube rotation
-  // vNormal = normalMatrix * normal;
-  vNormal = -normal;
-  lightVec = normalize(position - customPointLightPos);
+//   vNormal  = normalMatrix * normal;
+// lightVec = mat3(viewMatrix) * normalize(customPointLightPos - position); 
+  vNormal  = normalMatrix * normal;
+  // vNormal  = normal * normalMatrix;
+  lightVec = mat3(viewMatrix) * normalize(customPointLightPos - position);
  
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
